@@ -2,90 +2,90 @@ import { useState } from "react";
 
 const sections = [
   {
-    id: "basics", icon: "🗄️", title: "PostgreSQL Əsasları", color: "#4FC3F7",
+    id: "basics", icon: "🗄️", title: "Основы PostgreSQL", color: "#4FC3F7",
     topics: [
       {
-        title: "Arxitektura",
-        content: `PostgreSQL — obyekt-əlaqəli DBMS. 1996-cı ildən açıq mənbəli.
+        title: "Архитектура",
+        content: `PostgreSQL — объектно-реляционная СУБД. Открытый исходный код с 1996 года.
 
-**Proses modeli:**
-• Postmaster — əsas proses, portu dinləyir, uşaq prosesləri yaradır
-• Backend process — hər müştəri bağlantısı üçün ayrıca proses (fork)
-• Background Writer (bgwriter) — dirty page-ləri shared_buffers-dən diskə yazır
-• WAL Writer — WAL buferini diskə yazır
-• Checkpointer — checkpoint-ləri icra edir
-• Autovacuum Launcher/Worker — autovacuum işlədər
+**Модель процессов:**
+• Postmaster — главный процесс, слушает порт, создаёт дочерние процессы
+• Backend process — отдельный процесс для каждого соединения клиента (fork)
+• Background Writer (bgwriter) — записывает грязные страницы из shared_buffers на диск
+• WAL Writer — записывает WAL-буфер на диск
+• Checkpointer — выполняет контрольные точки
+• Autovacuum Launcher/Worker — запускает автовакуум
 
-**Yaddaş:**
-• Shared Buffers — ümumi səhifə keşi (bütün backend-lər arasında paylaşılır)
-• WAL Buffers — tranzaksiya jurnalı buferi
-• Work Mem — sort/hash əməliyyatları üçün yaddaş (hər əməliyyat üçün)
-• Maintenance Work Mem — VACUUM, CREATE INDEX üçün
+**Память:**
+• Shared Buffers — общий кэш страниц (разделяется между всеми backend-ами)
+• WAL Buffers — буфер журнала транзакций
+• Work Mem — память для операций сортировки/хеширования (на каждую операцию)
+• Maintenance Work Mem — для VACUUM, CREATE INDEX
 
-**Saxlama:**
+**Хранение:**
 \`\`\`
 $PGDATA/
-  base/           -- verilənlər bazası faylları (OID-ə görə)
-  global/         -- klaster sistem cədvəlləri
-  pg_wal/         -- WAL seqmentləri (16MB hər biri)
-  pg_xact/        -- tranzaksiya statusları
+  base/           -- файлы баз данных (по OID)
+  global/         -- системные таблицы кластера
+  pg_wal/         -- WAL-сегменты (16 МБ каждый)
+  pg_xact/        -- статусы транзакций
   postgresql.conf
   pg_hba.conf
   PG_VERSION
 \`\`\`
 
-**Sorğunun həyatı:**
-Parser → Rewriter → Planner/Optimizer → Executor → nəticə`
+**Жизнь запроса:**
+Parser → Rewriter → Planner/Optimizer → Executor → результат`
       },
       {
-        title: "Konfiqurasiya",
-        content: `**Əsas parametrlər (postgresql.conf):**
+        title: "Конфигурация",
+        content: `**Основные параметры (postgresql.conf):**
 \`\`\`
 listen_addresses = '*'
 port = 5432
 max_connections = 200
-shared_buffers = 4GB          -- RAM-ın 25%-i
-work_mem = 16MB               -- sort/hash əməliyyatı başına
+shared_buffers = 4GB          -- 25% RAM
+work_mem = 16MB               -- на одну операцию сортировки/хеширования
 maintenance_work_mem = 512MB  -- VACUUM, CREATE INDEX
-effective_cache_size = 12GB   -- RAM-ın 75%-i (planlayıcı üçün ipucu)
+effective_cache_size = 12GB   -- 75% RAM (подсказка для планировщика)
 wal_level = replica
-fsync = on                    -- HEÇ VAXT söndürməyin!
+fsync = on                    -- НИКОГДА не отключать!
 synchronous_commit = on
 max_wal_size = 4GB
 checkpoint_completion_target = 0.9
-random_page_cost = 1.1        -- SSD üçün (HDD üçün 4.0)
-log_min_duration_statement = 1000  -- 1 san-dən uzun sorğular
+random_page_cost = 1.1        -- для SSD (для HDD — 4.0)
+log_min_duration_statement = 1000  -- запросы длиннее 1 сек
 \`\`\`
 
-**Dəyişikliklərin tətbiqi:**
+**Применение изменений:**
 \`\`\`sql
-ALTER SYSTEM SET parametr = dəyər;
-ALTER SYSTEM RESET parametr;
-SELECT pg_reload_conf();  -- sighup parametrləri üçün restart lazım deyil
+ALTER SYSTEM SET параметр = значение;
+ALTER SYSTEM RESET параметр;
+SELECT pg_reload_conf();  -- для sighup-параметров рестарт не нужен
 \`\`\``
       },
       {
         title: "pg_hba.conf",
-        content: `**Sintaksis:**
+        content: `**Синтаксис:**
 \`\`\`
-TIP  VERİLƏNLƏR_BAZASI  İSTİFADƏÇİ  ÜNVAN  METOD
+ТИП  БАЗА_ДАННЫХ  ПОЛЬЗОВАТЕЛЬ  АДРЕС  МЕТОД
 \`\`\`
 
-**Bağlantı tipləri:**
-• local — Unix socket
-• host — TCP (SSL və ya SSL-siz)
-• hostssl — yalnız SSL
-• hostnossl — yalnız SSL-siz
+**Типы подключений:**
+• local — Unix-сокет
+• host — TCP (с SSL или без)
+• hostssl — только SSL
+• hostnossl — только без SSL
 
-**Autentifikasiya metodları:**
-• trust — şifrəsiz (yalnız localhost/infrastruktura üçün!)
-• peer — OS username = DB username (yalnız local)
-• scram-sha-256 — SCRAM (tövsiyə edilir, PG 10+)
-• cert — SSL müştəri sertifikatı
-• ldap — LDAP server
-• reject — həmişə rədd et
+**Методы аутентификации:**
+• trust — без пароля (только для localhost/инфраструктуры!)
+• peer — имя пользователя ОС = имя пользователя БД (только local)
+• scram-sha-256 — SCRAM (рекомендуется, PG 10+)
+• cert — SSL-сертификат клиента
+• ldap — LDAP-сервер
+• reject — всегда отклонять
 
-**Nümunələr:**
+**Примеры:**
 \`\`\`
 local   all          postgres                  peer
 host    replication  replicator  10.0.0.0/8   scram-sha-256
@@ -94,56 +94,56 @@ hostssl all          all         0.0.0.0/0    scram-sha-256
 host    all          all         0.0.0.0/0    reject
 \`\`\`
 
-**Vacib:** fayl yuxarıdan aşağı oxunur, İLK uyğunluq tətbiq edilir!`
+**Важно:** файл читается сверху вниз, применяется ПЕРВОЕ совпадение!`
       },
       {
-        title: "psql və alətlər",
-        content: `**Bağlantı:**
+        title: "psql и инструменты",
+        content: `**Подключение:**
 \`\`\`bash
 psql -U postgres -d mydb -h localhost -p 5432
 psql "postgresql://user:pass@host:5432/db?sslmode=require"
 psql -U postgres -c "SELECT version();"
-psql -U postgres -f skript.sql
+psql -U postgres -f script.sql
 \`\`\`
 
-**Meta-əmrlər:**
+**Мета-команды:**
 \`\`\`
-\\l [+]          -- verilənlər bazaları
-\\c dbname       -- bazanı dəyiş
-\\dt [+]         -- cədvəllər
-\\d cədvəl       -- cədvəl strukturu
-\\d+ cədvəl      -- əlavə məlumatla
-\\di             -- indekslər
-\\dv             -- görünüşlər
-\\dm             -- materialized görünüşlər
-\\df             -- funksiyalar
-\\dn             -- sxemlər
-\\du             -- rollar
-\\dp cədvəl      -- imtiyazlar
-\\timing on      -- vaxt ölçümü
-\\x on|off|auto  -- genişləndirilmiş çıxış
-\\e              -- redaktor
-\\i fayl.sql     -- faylı icra et
-\\watch 2        -- hər 2 san-dən bir təkrar et
-\\q              -- çıxış
+\\l [+]          -- базы данных
+\\c dbname       -- сменить базу
+\\dt [+]         -- таблицы
+\\d таблица      -- структура таблицы
+\\d+ таблица     -- с дополнительной информацией
+\\di             -- индексы
+\\dv             -- представления
+\\dm             -- материализованные представления
+\\df             -- функции
+\\dn             -- схемы
+\\du             -- роли
+\\dp таблица     -- права
+\\timing on      -- замер времени
+\\x on|off|auto  -- расширенный вывод
+\\e              -- редактор
+\\i file.sql     -- выполнить файл
+\\watch 2        -- повторять каждые 2 сек
+\\q              -- выход
 \`\`\`
 
-**Sistem alətləri:**
+**Системные утилиты:**
 \`\`\`bash
 initdb -D /var/lib/postgresql/data
 pg_ctl start|stop|restart|reload|status -D /data
 pg_dump / pg_dumpall / pg_restore
-pg_basebackup  -- fiziki ehtiyat nüsxəsi
+pg_basebackup  -- физическая резервная копия
 vacuumdb -U postgres -d mydb -v
 \`\`\``
       },
       {
-        title: "Verilənlər Bazası Obyektləri",
-        content: `**Verilənlər bazaları və sxemlər:**
+        title: "Объекты базы данных",
+        content: `**Базы данных и схемы:**
 \`\`\`sql
 CREATE DATABASE mydb
     OWNER postgres ENCODING 'UTF8'
-    LC_COLLATE 'az_AZ.UTF-8' TEMPLATE template0;
+    LC_COLLATE 'ru_RU.UTF-8' TEMPLATE template0;
 
 CREATE SCHEMA app;
 SET search_path = app, public;
@@ -153,446 +153,446 @@ SELECT datname, pg_size_pretty(pg_database_size(datname))
 FROM pg_database ORDER BY pg_database_size(datname) DESC;
 \`\`\`
 
-**Ardıcıllıqlar (Sequences):**
+**Последовательности (Sequences):**
 \`\`\`sql
 CREATE SEQUENCE order_seq START 1000 INCREMENT 5 CACHE 20;
 SELECT nextval('order_seq');
 SELECT currval('order_seq');
 SELECT setval('order_seq', 5000);
 
--- IDENTITY (SERIAL-in müasir əvəzi)
+-- IDENTITY (современная замена SERIAL)
 CREATE TABLE t (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY
 );
 \`\`\`
 
-**Görünüşlər (Views):**
+**Представления (Views):**
 \`\`\`sql
-CREATE OR REPLACE VIEW aktiv_isleciler AS
-SELECT id, ad, maas, dept_id
-FROM islechiler WHERE aktiv = true;
+CREATE OR REPLACE VIEW active_employees AS
+SELECT id, name, salary, dept_id
+FROM employees WHERE active = true;
 
-CREATE MATERIALIZED VIEW dept_statistika AS
-SELECT dept_id, COUNT(*) as say, AVG(maas) as ort_maas
-FROM islechiler GROUP BY dept_id WITH DATA;
+CREATE MATERIALIZED VIEW dept_stats AS
+SELECT dept_id, COUNT(*) as cnt, AVG(salary) as avg_salary
+FROM employees GROUP BY dept_id WITH DATA;
 
-REFRESH MATERIALIZED VIEW CONCURRENTLY dept_statistika;
-CREATE UNIQUE INDEX ON dept_statistika (dept_id);
+REFRESH MATERIALIZED VIEW CONCURRENTLY dept_stats;
+CREATE UNIQUE INDEX ON dept_stats (dept_id);
 \`\`\`
 
-**Tablespace-lər:**
+**Табличные пространства:**
 \`\`\`sql
 CREATE TABLESPACE ssd_fast LOCATION '/mnt/ssd/pg_data';
-CREATE TABLE isti_cedvel (...) TABLESPACE ssd_fast;
+CREATE TABLE hot_table (...) TABLESPACE ssd_fast;
 \`\`\``
       }
     ]
   },
   {
-    id: "sql", icon: "📝", title: "PostgreSQL-də SQL", color: "#81C784",
+    id: "sql", icon: "📝", title: "SQL в PostgreSQL", color: "#81C784",
     topics: [
       {
-        title: "Məlumat tipləri",
-        content: `**Ədədi tiplər:**
+        title: "Типы данных",
+        content: `**Числовые типы:**
 \`\`\`sql
-SMALLINT          -- 2 bayt
-INTEGER / INT     -- 4 bayt
-BIGINT            -- 8 bayt
-NUMERIC(p,s)      -- dəqiq onluq
-REAL              -- 4 bayt float
-DOUBLE PRECISION  -- 8 bayt float
+SMALLINT          -- 2 байта
+INTEGER / INT     -- 4 байта
+BIGINT            -- 8 байт
+NUMERIC(p,s)      -- точное десятичное
+REAL              -- 4 байта float
+DOUBLE PRECISION  -- 8 байт float
 \`\`\`
 
-**Mətn tipləri:**
+**Текстовые типы:**
 \`\`\`sql
-CHAR(n)     -- sabit uzunluq
-VARCHAR(n)  -- n simvola qədər
-TEXT        -- limitsiz uzunluq (tövsiyə edilir!)
+CHAR(n)     -- фиксированная длина
+VARCHAR(n)  -- до n символов
+TEXT        -- неограниченная длина (рекомендуется!)
 \`\`\`
 
-**Tarix və vaxt:**
+**Дата и время:**
 \`\`\`sql
 DATE                -- YYYY-MM-DD
-TIME / TIMETZ       -- vaxt
-TIMESTAMP / TIMESTAMPTZ  -- tarix+vaxt
-INTERVAL            -- müddət: '2 il 3 ay 5 gün'
+TIME / TIMETZ       -- время
+TIMESTAMP / TIMESTAMPTZ  -- дата+время
+INTERVAL            -- промежуток: '2 years 3 months 5 days'
 
 NOW() / CURRENT_TIMESTAMP
-CLOCK_TIMESTAMP()   -- tranzaksiyada real vaxt
-DATE_TRUNC('ay', ts)
-EXTRACT(il FROM ts)
-ts + INTERVAL '30 gün'
+CLOCK_TIMESTAMP()   -- реальное время внутри транзакции
+DATE_TRUNC('month', ts)
+EXTRACT(year FROM ts)
+ts + INTERVAL '30 days'
 AGE(ts1, ts2)
 \`\`\`
 
-**PostgreSQL xüsusi tipləri:**
+**Специальные типы PostgreSQL:**
 \`\`\`sql
 UUID              -- gen_random_uuid() (PG 13+)
 BOOLEAN           -- true/false/null
-BYTEA             -- ikili məlumatlar
-INET / CIDR       -- IP ünvanlar
-JSONB / JSON      -- JSON (JSONB üstündür!)
-INT4RANGE / TSRANGE / DATERANGE  -- aralıqlar
-TSVECTOR / TSQUERY -- tam mətn axtarışı
+BYTEA             -- бинарные данные
+INET / CIDR       -- IP-адреса
+JSONB / JSON      -- JSON (JSONB предпочтительнее!)
+INT4RANGE / TSRANGE / DATERANGE  -- диапазоны
+TSVECTOR / TSQUERY -- полнотекстовый поиск
 \`\`\`
 
-**Massivlər:**
+**Массивы:**
 \`\`\`sql
-CREATE TABLE t (etiketler TEXT[], xallar INTEGER[]);
+CREATE TABLE t (tags TEXT[], scores INTEGER[]);
 INSERT INTO t VALUES (ARRAY['pg','sql'], '{90,85,95}');
-SELECT etiketler[1] FROM t;
-SELECT * FROM t WHERE 'pg' = ANY(etiketler);
-SELECT unnest(etiketler) FROM t;  -- sıralara aç
+SELECT tags[1] FROM t;
+SELECT * FROM t WHERE 'pg' = ANY(tags);
+SELECT unnest(tags) FROM t;  -- развернуть в строки
 \`\`\``
       },
       {
-        title: "DDL — Struktur Tərifləri",
-        content: `**Cədvəl yaratma:**
+        title: "DDL — Определение структуры",
+        content: `**Создание таблицы:**
 \`\`\`sql
-CREATE TABLE islechiler (
+CREATE TABLE employees (
     id          BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    ad          TEXT NOT NULL,
+    name        TEXT NOT NULL,
     email       TEXT UNIQUE NOT NULL,
-    maas        NUMERIC(12,2) CHECK (maas > 0),
-    dept_id     INTEGER REFERENCES departamentler(id)
+    salary      NUMERIC(12,2) CHECK (salary > 0),
+    dept_id     INTEGER REFERENCES departments(id)
                     ON DELETE SET NULL ON UPDATE CASCADE,
-    status      TEXT DEFAULT 'aktiv'
-                    CHECK (status IN ('aktiv','deaktiv','iscidan_cixib')),
-    yaradildi   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    CONSTRAINT uq_ad_dept UNIQUE (ad, dept_id)
+    status      TEXT DEFAULT 'active'
+                    CHECK (status IN ('active','inactive','fired')),
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT uq_name_dept UNIQUE (name, dept_id)
 );
 \`\`\`
 
-**Məhdudiyyətlər:**
+**Ограничения:**
 \`\`\`sql
-ALTER TABLE t ADD CONSTRAINT chk_maas CHECK (maas > 0) NOT VALID;
-ALTER TABLE t VALIDATE CONSTRAINT chk_maas;  -- ayrıca, qısa kilid
+ALTER TABLE t ADD CONSTRAINT chk_salary CHECK (salary > 0) NOT VALID;
+ALTER TABLE t VALIDATE CONSTRAINT chk_salary;  -- отдельно, с коротким локом
 
 ALTER TABLE t ADD CONSTRAINT fk_dept
     FOREIGN KEY (dept_id) REFERENCES depts(id)
     DEFERRABLE INITIALLY DEFERRED;
 \`\`\`
 
-**Cədvəl dəyişiklikləri (təhlükəsiz):**
+**Изменение таблицы (безопасно):**
 \`\`\`sql
-ALTER TABLE t ADD COLUMN yeni_sutun TEXT;
-ALTER TABLE t ADD COLUMN sutun TEXT DEFAULT 'deger';  -- PG 11+: ani!
-ALTER TABLE t DROP COLUMN IF EXISTS kohn_sutun;
-ALTER TABLE t ALTER COLUMN sutun SET DEFAULT 0;
-ALTER TABLE t ALTER COLUMN sutun SET NOT NULL;
-ALTER TABLE t RENAME COLUMN kohn TO yeni;
-ALTER TABLE t RENAME TO yeni_ad;
+ALTER TABLE t ADD COLUMN new_col TEXT;
+ALTER TABLE t ADD COLUMN col TEXT DEFAULT 'value';  -- PG 11+: мгновенно!
+ALTER TABLE t DROP COLUMN IF EXISTS old_col;
+ALTER TABLE t ALTER COLUMN col SET DEFAULT 0;
+ALTER TABLE t ALTER COLUMN col SET NOT NULL;
+ALTER TABLE t RENAME COLUMN old_name TO new_name;
+ALTER TABLE t RENAME TO new_table_name;
 \`\`\``
       },
       {
-        title: "DML — Məlumat Manipulyasiyası",
+        title: "DML — Манипуляция данными",
         content: `**INSERT:**
 \`\`\`sql
-INSERT INTO islechiler (ad, email, maas)
-VALUES ('Əli', 'eli@mail.az', 75000)
-RETURNING id, yaradildi;
+INSERT INTO employees (name, email, salary)
+VALUES ('Алексей', 'alex@mail.ru', 75000)
+RETURNING id, created_at;
 
-INSERT INTO islechiler (ad, email, maas) VALUES
-    ('Aynur', 'aynur@mail.az', 80000),
-    ('Rauf', 'rauf@mail.az', 90000);
+INSERT INTO employees (name, email, salary) VALUES
+    ('Анна', 'anna@mail.ru', 80000),
+    ('Рустам', 'rustam@mail.ru', 90000);
 
--- Konflikt zamanı yeniləmə (UPSERT)
-INSERT INTO islechiler (email, ad, maas)
-VALUES ('eli@mail.az', 'Əli', 85000)
+-- Обновление при конфликте (UPSERT)
+INSERT INTO employees (email, name, salary)
+VALUES ('alex@mail.ru', 'Алексей', 85000)
 ON CONFLICT (email) DO UPDATE
-    SET maas = EXCLUDED.maas, yenilendi = NOW();
+    SET salary = EXCLUDED.salary, updated_at = NOW();
 
-INSERT INTO t (id, deger) VALUES (1, 'x')
+INSERT INTO t (id, value) VALUES (1, 'x')
 ON CONFLICT DO NOTHING;
 \`\`\`
 
 **UPDATE:**
 \`\`\`sql
-UPDATE islechiler e
-SET maas = e.maas * d.artim_faktoru
-FROM departamentler d
-WHERE e.dept_id = d.id AND d.bucdze > 1000000
-RETURNING e.id, e.ad, e.maas;
+UPDATE employees e
+SET salary = e.salary * d.raise_factor
+FROM departments d
+WHERE e.dept_id = d.id AND d.budget > 1000000
+RETURNING e.id, e.name, e.salary;
 \`\`\`
 
 **DELETE:**
 \`\`\`sql
-DELETE FROM sifarisler s
-USING musteri c
-WHERE s.musteri_id = c.id AND c.bloklanib = true;
+DELETE FROM orders o
+USING customers c
+WHERE o.customer_id = c.id AND c.blocked = true;
 
-TRUNCATE TABLE islechiler RESTART IDENTITY CASCADE;
+TRUNCATE TABLE employees RESTART IDENTITY CASCADE;
 \`\`\`
 
-**COPY — sürətli yükləmə:**
+**COPY — быстрая загрузка:**
 \`\`\`sql
-COPY islechiler (ad, email, maas)
-FROM '/tmp/islechiler.csv' CSV HEADER;
+COPY employees (name, email, salary)
+FROM '/tmp/employees.csv' CSV HEADER;
 
-COPY islechiler TO '/tmp/ixrac.csv' CSV HEADER;
+COPY employees TO '/tmp/export.csv' CSV HEADER;
 \`\`\``
       },
       {
-        title: "SELECT və JOIN",
-        content: `**JOIN növləri:**
+        title: "SELECT и JOIN",
+        content: `**Виды JOIN:**
 \`\`\`sql
 -- INNER JOIN
-SELECT e.ad, d.ad AS dept
-FROM islechiler e JOIN departamentler d ON e.dept_id = d.id;
+SELECT e.name, d.name AS dept
+FROM employees e JOIN departments d ON e.dept_id = d.id;
 
 -- LEFT JOIN
-SELECT e.ad, d.ad AS dept
-FROM islechiler e LEFT JOIN departamentler d ON e.dept_id = d.id;
+SELECT e.name, d.name AS dept
+FROM employees e LEFT JOIN departments d ON e.dept_id = d.id;
 
 -- SELF JOIN
-SELECT e.ad, m.ad AS menecer
-FROM islechiler e LEFT JOIN islechiler m ON e.menecer_id = m.id;
+SELECT e.name, m.name AS manager
+FROM employees e LEFT JOIN employees m ON e.manager_id = m.id;
 \`\`\`
 
-**EXISTS (IN-dən daha səmərəli):**
+**EXISTS (эффективнее чем IN):**
 \`\`\`sql
-SELECT * FROM departamentler d WHERE EXISTS (
-    SELECT 1 FROM islechiler e
-    WHERE e.dept_id = d.id AND e.maas > 100000
+SELECT * FROM departments d WHERE EXISTS (
+    SELECT 1 FROM employees e
+    WHERE e.dept_id = d.id AND e.salary > 100000
 );
 \`\`\`
 
-**GROUP BY və aqreqatlar:**
+**GROUP BY и агрегаты:**
 \`\`\`sql
-SELECT dept_id, COUNT(*) AS say, AVG(maas) AS ort_maas,
-       PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY maas) AS median,
-       STRING_AGG(ad, ', ' ORDER BY ad) AS adlar
-FROM islechiler
+SELECT dept_id, COUNT(*) AS cnt, AVG(salary) AS avg_salary,
+       PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY salary) AS median,
+       STRING_AGG(name, ', ' ORDER BY name) AS names
+FROM employees
 GROUP BY dept_id HAVING COUNT(*) > 5
-ORDER BY ort_maas DESC;
+ORDER BY avg_salary DESC;
 
 -- GROUPING SETS, ROLLUP, CUBE
 SELECT dept_id, status, COUNT(*)
-FROM islechiler
+FROM employees
 GROUP BY GROUPING SETS ((dept_id), (status), ());
 \`\`\``
       },
       {
-        title: "Pəncərə Funksiyaları",
-        content: `**Sintaksis:**
+        title: "Оконные функции",
+        content: `**Синтаксис:**
 \`\`\`sql
-funksiya() OVER (
-    [PARTITION BY sutun1, sutun2]
-    [ORDER BY sutun3 DESC]
+функция() OVER (
+    [PARTITION BY col1, col2]
+    [ORDER BY col3 DESC]
     [ROWS|RANGE BETWEEN ... AND ...]
 )
 \`\`\`
 
-**Sıralama funksiyaları:**
+**Функции ранжирования:**
 \`\`\`sql
-SELECT ad, maas, dept_id,
-    ROW_NUMBER() OVER (ORDER BY maas DESC) AS sira,
-    RANK()       OVER (ORDER BY maas DESC) AS rank,
-    DENSE_RANK() OVER (ORDER BY maas DESC) AS sıx_rank,
-    NTILE(4)     OVER (ORDER BY maas DESC) AS kvartil,
-    PERCENT_RANK() OVER (ORDER BY maas)   AS faiz_rank
-FROM islechiler;
+SELECT name, salary, dept_id,
+    ROW_NUMBER() OVER (ORDER BY salary DESC) AS row_num,
+    RANK()       OVER (ORDER BY salary DESC) AS rank,
+    DENSE_RANK() OVER (ORDER BY salary DESC) AS dense_rank,
+    NTILE(4)     OVER (ORDER BY salary DESC) AS quartile,
+    PERCENT_RANK() OVER (ORDER BY salary)   AS pct_rank
+FROM employees;
 \`\`\`
 
-**Naviqasiya funksiyaları:**
+**Функции навигации:**
 \`\`\`sql
-SELECT ad, maas,
-    LAG(maas)  OVER (PARTITION BY dept_id ORDER BY yaradildi) AS evvelki_maas,
-    LEAD(maas) OVER (PARTITION BY dept_id ORDER BY yaradildi) AS novbeti_maas,
-    FIRST_VALUE(maas) OVER (PARTITION BY dept_id ORDER BY maas DESC) AS en_yuksek
-FROM islechiler;
+SELECT name, salary,
+    LAG(salary)  OVER (PARTITION BY dept_id ORDER BY created_at) AS prev_salary,
+    LEAD(salary) OVER (PARTITION BY dept_id ORDER BY created_at) AS next_salary,
+    FIRST_VALUE(salary) OVER (PARTITION BY dept_id ORDER BY salary DESC) AS max_salary
+FROM employees;
 \`\`\`
 
-**Aqreqatlar pəncərə kimi:**
+**Агрегаты как оконные:**
 \`\`\`sql
-SELECT ad, maas, dept_id,
-    SUM(maas) OVER (PARTITION BY dept_id) AS dept_toplam,
-    AVG(maas) OVER (PARTITION BY dept_id) AS dept_ort,
-    SUM(maas) OVER (ORDER BY yaradildi
-        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS yigilma_toplam
-FROM islechiler;
+SELECT name, salary, dept_id,
+    SUM(salary) OVER (PARTITION BY dept_id) AS dept_total,
+    AVG(salary) OVER (PARTITION BY dept_id) AS dept_avg,
+    SUM(salary) OVER (ORDER BY created_at
+        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS running_total
+FROM employees;
 \`\`\`
 
-**Hər qrupdan TOP N:**
+**TOP N из каждой группы:**
 \`\`\`sql
-SELECT dept_id, ad, maas FROM (
-    SELECT dept_id, ad, maas,
-           ROW_NUMBER() OVER (PARTITION BY dept_id ORDER BY maas DESC) AS sn
-    FROM islechiler
-) t WHERE sn <= 3;  -- hər departamentdə top-3
+SELECT dept_id, name, salary FROM (
+    SELECT dept_id, name, salary,
+           ROW_NUMBER() OVER (PARTITION BY dept_id ORDER BY salary DESC) AS rn
+    FROM employees
+) t WHERE rn <= 3;  -- топ-3 в каждом отделе
 \`\`\``
       },
       {
-        title: "CTE və LATERAL",
-        content: `**Adi CTE:**
+        title: "CTE и LATERAL",
+        content: `**Обычный CTE:**
 \`\`\`sql
 WITH dept_stat AS (
-    SELECT dept_id, AVG(maas) AS ort_maas, COUNT(*) AS say
-    FROM islechiler GROUP BY dept_id
+    SELECT dept_id, AVG(salary) AS avg_salary, COUNT(*) AS cnt
+    FROM employees GROUP BY dept_id
 ),
-zengin_dept AS (
-    SELECT d.ad, ds.ort_maas, ds.say, ds.ort_maas * ds.say AS ümumi_xərc
-    FROM departamentler d JOIN dept_stat ds ON d.id = ds.dept_id
+rich_dept AS (
+    SELECT d.name, ds.avg_salary, ds.cnt, ds.avg_salary * ds.cnt AS total_cost
+    FROM departments d JOIN dept_stat ds ON d.id = ds.dept_id
 )
-SELECT * FROM zengin_dept WHERE ümumi_xərc > 1000000;
+SELECT * FROM rich_dept WHERE total_cost > 1000000;
 \`\`\`
 
-**Rekursiv CTE:**
+**Рекурсивный CTE:**
 \`\`\`sql
 WITH RECURSIVE org AS (
-    SELECT id, ad, menecer_id, 0 AS dərinlik, ad::TEXT AS yol
-    FROM islechiler WHERE menecer_id IS NULL
+    SELECT id, name, manager_id, 0 AS depth, name::TEXT AS path
+    FROM employees WHERE manager_id IS NULL
     UNION ALL
-    SELECT e.id, e.ad, e.menecer_id, o.dərinlik+1, o.yol || ' → ' || e.ad
-    FROM islechiler e JOIN org o ON e.menecer_id = o.id
-    WHERE o.dərinlik < 10
+    SELECT e.id, e.name, e.manager_id, o.depth+1, o.path || ' → ' || e.name
+    FROM employees e JOIN org o ON e.manager_id = o.id
+    WHERE o.depth < 10
 )
-SELECT dərinlik, yol FROM org ORDER BY yol;
+SELECT depth, path FROM org ORDER BY path;
 \`\`\`
 
 **LATERAL JOIN:**
 \`\`\`sql
--- Hər müştərinin son sifarişi
-SELECT m.ad, s.mebleg, s.tarix
-FROM musteriler m,
+-- Последний заказ каждого клиента
+SELECT c.name, o.amount, o.date
+FROM customers c,
 LATERAL (
-    SELECT mebleg, tarix FROM sifarisler
-    WHERE musteri_id = m.id ORDER BY tarix DESC LIMIT 1
-) s;
+    SELECT amount, date FROM orders
+    WHERE customer_id = c.id ORDER BY date DESC LIMIT 1
+) o;
 \`\`\`
 
-**MATERİALİZED CTE (PG 12+):**
+**MATERIALIZED CTE (PG 12+):**
 \`\`\`sql
-WITH bahalı AS MATERIALIZED (
-    SELECT * FROM böyük_cedvel WHERE şərt
+WITH expensive AS MATERIALIZED (
+    SELECT * FROM big_table WHERE condition
 )
-SELECT * FROM bahalı WHERE sutun = 1
+SELECT * FROM expensive WHERE col = 1
 UNION ALL
-SELECT * FROM bahalı WHERE sutun = 2;
+SELECT * FROM expensive WHERE col = 2;
 \`\`\``
       },
       {
-        title: "JSON və JSONB",
+        title: "JSON и JSONB",
         content: `**JSON vs JSONB:**
-• JSON — mətni olduğu kimi saxlayır
-• JSONB — ikili format, indekslər dəstəklənir → HƏMIŞƏ JSONB istifadə edin!
+• JSON — хранит текст как есть
+• JSONB — бинарный формат, поддерживает индексы → ВСЕГДА используйте JSONB!
 
-**Giriş operatorları:**
+**Операторы доступа:**
 \`\`\`sql
-data->'istifadeci_id'           -- JSONB dəyər
-data->>'istifadeci_id'          -- mətn dəyər
-data->'elementler'->0            -- massiv elementi
-data#>>'{meta,olke}'             -- yolə görə (mətn)
-data ? 'istifadeci_id'           -- açar mövcuddur
-data @> '{"emel":"alıs"}'::jsonb -- ehtiva edir
+data->'user_id'           -- JSONB значение
+data->>'user_id'          -- текстовое значение
+data->'items'->0          -- элемент массива
+data#>>'{meta,country}'   -- по пути (текст)
+data ? 'user_id'          -- ключ существует
+data @> '{"action":"buy"}'::jsonb -- содержит
 \`\`\`
 
-**JSONB dəyişdirmə:**
+**Изменение JSONB:**
 \`\`\`sql
-UPDATE hadiseler
-SET data = jsonb_set(data, '{meta,islendi}', 'true');
-UPDATE hadiseler SET data = data - 'meta';
-UPDATE hadiseler SET data = data || '{"status":"hazır"}';
+UPDATE events
+SET data = jsonb_set(data, '{meta,processed}', 'true');
+UPDATE events SET data = data - 'meta';
+UPDATE events SET data = data || '{"status":"ready"}';
 \`\`\`
 
-**İndekslər:**
+**Индексы:**
 \`\`\`sql
-CREATE INDEX ON hadiseler USING GIN (data);
-CREATE INDEX ON hadiseler USING GIN (data jsonb_path_ops);
-CREATE INDEX ON hadiseler ((data->>'istifadeci_id'));
+CREATE INDEX ON events USING GIN (data);
+CREATE INDEX ON events USING GIN (data jsonb_path_ops);
+CREATE INDEX ON events ((data->>'user_id'));
 \`\`\``
       }
     ]
   },
   {
-    id: "indexes", icon: "⚡", title: "İndekslər", color: "#FFB74D",
+    id: "indexes", icon: "⚡", title: "Индексы", color: "#FFB74D",
     topics: [
       {
-        title: "İndeks növləri",
-        content: `**B-Tree (standart):** =, <, >, BETWEEN, IN, IS NULL, LIKE 'prefix%'
+        title: "Типы индексов",
+        content: `**B-Tree (стандартный):** =, <, >, BETWEEN, IN, IS NULL, LIKE 'prefix%'
 \`\`\`sql
-CREATE INDEX idx_ad ON islechiler (ad);
-CREATE UNIQUE INDEX idx_email ON islechiler (email);
-CREATE INDEX idx_dept_maas ON islechiler (dept_id, maas DESC NULLS LAST);
-CREATE INDEX idx_aktiv ON islechiler (email) WHERE silinme_tarixi IS NULL;
-CREATE INDEX idx_kicik ON islechiler (LOWER(email));
-CREATE INDEX idx_ortulu ON islechiler (dept_id) INCLUDE (ad, maas);
+CREATE INDEX idx_name ON employees (name);
+CREATE UNIQUE INDEX idx_email ON employees (email);
+CREATE INDEX idx_dept_salary ON employees (dept_id, salary DESC NULLS LAST);
+CREATE INDEX idx_active ON employees (email) WHERE deleted_at IS NULL;
+CREATE INDEX idx_lower ON employees (LOWER(email));
+CREATE INDEX idx_covering ON employees (dept_id) INCLUDE (name, salary);
 \`\`\`
 
-**Hash:** yalnız = üçün (bərabərlik üçün B-Tree-dən sürətli)
+**Hash:** только для = (быстрее B-Tree для точного совпадения)
 \`\`\`sql
-CREATE INDEX ON sessialar USING HASH (sessiya_tokeni);
+CREATE INDEX ON sessions USING HASH (session_token);
 \`\`\`
 
-**GIN:** massivlər, JSONB, tsvector
+**GIN:** массивы, JSONB, tsvector
 \`\`\`sql
-CREATE INDEX ON meqaleler USING GIN (etiketler);
-CREATE INDEX ON hadiseler USING GIN (data);
-CREATE INDEX ON senedler  USING GIN (axtaris_vektoru);
-CREATE INDEX ON t         USING GIN (ad gin_trgm_ops);
+CREATE INDEX ON articles USING GIN (tags);
+CREATE INDEX ON events USING GIN (data);
+CREATE INDEX ON documents USING GIN (search_vector);
+CREATE INDEX ON t USING GIN (name gin_trgm_ops);
 \`\`\`
 
-**GiST:** həndəsə, aralıqlar, PostGIS
+**GiST:** геометрия, диапазоны, PostGIS
 \`\`\`sql
-CREATE INDEX ON yerler      USING GIST (nokta_sutun);
-CREATE INDEX ON rezervasiya USING GIST (muddet);  -- TSRANGE
+CREATE INDEX ON locations USING GIST (point_col);
+CREATE INDEX ON reservations USING GIST (period);  -- TSRANGE
 \`\`\`
 
-**BRIN:** böyük append-only cədvəllər üçün kiçik indeks
+**BRIN:** маленький индекс для больших append-only таблиц
 \`\`\`sql
-CREATE INDEX ON jurnal USING BRIN (yaradildi) WITH (pages_per_range=128);
+CREATE INDEX ON logs USING BRIN (created_at) WITH (pages_per_range=128);
 \`\`\``
       },
       {
-        title: "İndeks strategiyaları",
-        content: `**ESR qaydası (Equality → Sort → Range):**
+        title: "Стратегии индексирования",
+        content: `**Правило ESR (Equality → Sort → Range):**
 \`\`\`sql
--- Sorğu:
-SELECT * FROM sifarisler
-WHERE musteri_id = 42 AND status = 'gozleyir'
-ORDER BY yaradildi LIMIT 20;
+-- Запрос:
+SELECT * FROM orders
+WHERE customer_id = 42 AND status = 'pending'
+ORDER BY created_at LIMIT 20;
 
--- Optimal indeks:
-CREATE INDEX ON sifarisler (musteri_id, status, yaradildi);
+-- Оптимальный индекс:
+CREATE INDEX ON orders (customer_id, status, created_at);
 \`\`\`
 
-**Az seçici sütunlar üçün qismli indeks:**
+**Частичный индекс для низкоселективных столбцов:**
 \`\`\`sql
--- status üçün ayrıca indeks əvəzinə:
-CREATE INDEX ON sifarisler (yaradildi) WHERE status = 'gozleyir';
+-- Вместо отдельного индекса по status:
+CREATE INDEX ON orders (created_at) WHERE status = 'pending';
 \`\`\`
 
-**Örtücü indeks (INCLUDE):**
+**Покрывающий индекс (INCLUDE):**
 \`\`\`sql
-CREATE INDEX idx_ortulu ON islechiler (dept_id)
-INCLUDE (ad, maas);
--- Index Only Scan → cədvələ müraciət lazım deyil
+CREATE INDEX idx_covering ON employees (dept_id)
+INCLUDE (name, salary);
+-- Index Only Scan → обращение к таблице не нужно
 \`\`\`
 
-**İndeks istifadə edilmədiyi hallar:**
-• Cədvəl kiçikdir — Seq Scan daha ucuzdur
-• Sütun üzərində funksiya var (WHERE UPPER(email) = 'ƏLİ')
-• Aşağı seçicilik (WHERE cins = 'K' → 50% sətir)
-• Örtük tip çevrilməsi: WHERE varchar_sutun = 123
+**Когда индекс не используется:**
+• Таблица маленькая — Seq Scan дешевле
+• На столбце есть функция (WHERE UPPER(email) = 'ALEX')
+• Низкая селективность (WHERE gender = 'M' → 50% строк)
+• Неявное приведение типа: WHERE varchar_col = 123
 
-**İstifadə edilməyən indekslər:**
+**Неиспользуемые индексы:**
 \`\`\`sql
 SELECT schemaname, tablename, indexname, idx_scan,
-       pg_size_pretty(pg_relation_size(indexrelid)) AS ölçü
+       pg_size_pretty(pg_relation_size(indexrelid)) AS size
 FROM pg_stat_user_indexes WHERE idx_scan = 0
 ORDER BY pg_relation_size(indexrelid) DESC;
 \`\`\`
 
-**Online yaratma/silmə:**
+**Онлайн-создание/удаление:**
 \`\`\`sql
-CREATE INDEX CONCURRENTLY idx_yeni ON t (sutun);
-DROP INDEX CONCURRENTLY idx_kohn;
-REINDEX INDEX CONCURRENTLY idx_ad;
+CREATE INDEX CONCURRENTLY idx_new ON t (col);
+DROP INDEX CONCURRENTLY idx_old;
+REINDEX INDEX CONCURRENTLY idx_name;
 \`\`\``
       },
       {
         title: "EXPLAIN ANALYZE",
-        content: `**Sintaksis:**
+        content: `**Синтаксис:**
 \`\`\`sql
 EXPLAIN SELECT ...;
 EXPLAIN ANALYZE SELECT ...;
@@ -600,41 +600,41 @@ EXPLAIN (ANALYZE, BUFFERS) SELECT ...;
 EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) SELECT ...;
 \`\`\`
 
-**İcra planı qovşaqları:**
-• Seq Scan — cədvəlin tam taranması
-• Index Scan — indeks üzrə axtarış + cədvəldən oxuma
-• Index Only Scan — yalnız indeksdən (örtücü indeks — ideal!)
-• Bitmap Heap Scan — bit xəritəsi ilə yığın tarama
-• Hash Join — böyük cədvəllər üçün hash birləşmə
-• Nested Loop — kiçik xarici cədvəl üçün
-• Merge Join — sıralanmış dəstlərin birləşməsi
+**Узлы плана выполнения:**
+• Seq Scan — полное сканирование таблицы
+• Index Scan — поиск по индексу + чтение из таблицы
+• Index Only Scan — только из индекса (покрывающий индекс — идеально!)
+• Bitmap Heap Scan — сканирование кучи по битовой карте
+• Hash Join — хеш-соединение для больших таблиц
+• Nested Loop — для маленькой внешней таблицы
+• Merge Join — соединение отсортированных наборов
 • Sort, Aggregate, HashAggregate
-• Gather — paralel worker nəticələrinin toplanması
+• Gather — сбор результатов параллельных воркеров
 
-**Şərh:**
+**Расшифровка:**
 \`\`\`
 cost=0.00..1234.56 rows=50000 width=64
-    ^başlanğıc ^cəmi   ^gözlənilən  ^sətir eni
+    ^старт    ^итого  ^ожидаемых  ^ширина строки
 (actual time=0.042..15.3 rows=48921 loops=1)
-Buffers: shared hit=823 read=12  -- keş vs disk
-Filter: (maas > 50000)
+Buffers: shared hit=823 read=12  -- кэш vs диск
+Filter: (salary > 50000)
 Rows Removed by Filter: 1079
 \`\`\`
 
-**Statistika problemi:**
+**Проблема статистики:**
 \`\`\`sql
-ANALYZE islechiler;
-ALTER TABLE islechiler ALTER COLUMN maas SET STATISTICS 500;
-CREATE STATISTICS stat ON dept_id, maas FROM islechiler;
+ANALYZE employees;
+ALTER TABLE employees ALTER COLUMN salary SET STATISTICS 500;
+CREATE STATISTICS stat ON dept_id, salary FROM employees;
 \`\`\`
 
-**Onlayn alətlər:**
-• explain.depesz.com — rəngli analiz
-• explain.dalibo.com — ağac vizuallaşdırma`
+**Онлайн-инструменты:**
+• explain.depesz.com — цветной анализ
+• explain.dalibo.com — визуализация дерева`
       },
       {
         title: "pg_stat_statements",
-        content: `**Qurulum:**
+        content: `**Настройка:**
 \`\`\`
 shared_preload_libraries = 'pg_stat_statements'
 pg_stat_statements.max = 10000
@@ -645,27 +645,27 @@ pg_stat_statements.track_io_timing = on
 CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
 \`\`\`
 
-**Ən yavaş sorğular:**
+**Самые медленные запросы:**
 \`\`\`sql
 SELECT query, calls,
-       round(total_exec_time::numeric, 2) AS cəmi_ms,
-       round(mean_exec_time::numeric, 2)  AS ort_ms,
+       round(total_exec_time::numeric, 2) AS total_ms,
+       round(mean_exec_time::numeric, 2)  AS avg_ms,
        rows
 FROM pg_stat_statements
 ORDER BY total_exec_time DESC LIMIT 10;
 \`\`\`
 
-**Diskdən oxuma:**
+**Чтение с диска:**
 \`\`\`sql
-SELECT query, shared_blks_read AS disk_oxuma,
-       shared_blks_hit AS kes_vurma,
+SELECT query, shared_blks_read AS disk_reads,
+       shared_blks_hit AS cache_hits,
        round(shared_blks_hit::numeric /
-             NULLIF(shared_blks_hit+shared_blks_read,0)*100,1) AS kes_faizi
+             NULLIF(shared_blks_hit+shared_blks_read,0)*100,1) AS cache_ratio
 FROM pg_stat_statements WHERE shared_blks_read > 1000
-ORDER BY disk_oxuma DESC LIMIT 10;
+ORDER BY disk_reads DESC LIMIT 10;
 \`\`\`
 
-**Müvəqqəti fayllar (work_mem çatmır):**
+**Временные файлы (нехватка work_mem):**
 \`\`\`sql
 SELECT query, temp_blks_written
 FROM pg_stat_statements WHERE temp_blks_written > 0
@@ -673,23 +673,23 @@ ORDER BY temp_blks_written DESC LIMIT 10;
 \`\`\`
 
 \`\`\`sql
-SELECT pg_stat_statements_reset();  -- statistikanı sıfırla
+SELECT pg_stat_statements_reset();  -- сбросить статистику
 \`\`\``
       }
     ]
   },
   {
-    id: "transactions", icon: "🔒", title: "Tranzaksiyalar və MVCC", color: "#F48FB1",
+    id: "transactions", icon: "🔒", title: "Транзакции и MVCC", color: "#F48FB1",
     topics: [
       {
-        title: "ACID və Tranzaksiyalar",
+        title: "ACID и транзакции",
         content: `**ACID:**
-• Atomicity — hamısı ya heç biri
-• Consistency — məhdudiyyətlər pozulmur
-• Isolation — tranzaksiyalar bir-birindən təcrid edilir
-• Durability — qeydə alınmış məlumatlar saxlanır (WAL → disk)
+• Atomicity — всё или ничего
+• Consistency — ограничения не нарушаются
+• Isolation — транзакции изолированы друг от друга
+• Durability — зафиксированные данные сохраняются (WAL → диск)
 
-**İdarəetmə:**
+**Управление:**
 \`\`\`sql
 BEGIN;
 BEGIN ISOLATION LEVEL SERIALIZABLE;
@@ -702,120 +702,120 @@ SAVEPOINT sp1;
 ROLLBACK TO SAVEPOINT sp1;
 RELEASE SAVEPOINT sp1;
 
--- DDL tranzaksiyalarda dəstəklənir!
+-- DDL поддерживается в транзакциях!
 BEGIN;
-  ALTER TABLE t ADD COLUMN yeni_sutun TEXT;
-  UPDATE t SET yeni_sutun = 'default';
-COMMIT;  -- ya da ROLLBACK — DDL də geri qaytarılır!
+  ALTER TABLE t ADD COLUMN new_col TEXT;
+  UPDATE t SET new_col = 'default';
+COMMIT;  -- или ROLLBACK — DDL тоже откатывается!
 \`\`\`
 
-**Tranzaksiya vəziyyətləri:**
-• active — sorğu icra edilir
-• idle — növbəti əmri gözləyir
-• idle in transaction — BEGIN-siz COMMIT (təhlükəli!)
-• idle in transaction (aborted) — xəta, ROLLBACK lazımdır
+**Состояния транзакции:**
+• active — запрос выполняется
+• idle — ожидает следующую команду
+• idle in transaction — BEGIN без COMMIT (опасно!)
+• idle in transaction (aborted) — ошибка, нужен ROLLBACK
 
 \`\`\`sql
--- Donmuş tranzaksiyaları öldür
+-- Убить зависшие транзакции
 SELECT pg_terminate_backend(pid)
 FROM pg_stat_activity
 WHERE state = 'idle in transaction'
-  AND now() - state_change > interval '10 dəqiqə';
+  AND now() - state_change > interval '10 minutes';
 
 SET idle_in_transaction_session_timeout = '5min';
 \`\`\``
       },
       {
         title: "MVCC",
-        content: `**MVCC (Çox Versiyalı Paralellik İdarəetməsi) necə işləyir:**
+        content: `**Как работает MVCC (Многоверсионное управление конкурентным доступом):**
 
-Hər sətirdə gizli sistem sahələri var:
-• xmin — sətiri yaradan tranzaksiyanın ID-si
-• xmax — sətiri silən tranzaksiyanın ID-si (0 isə aktivdir)
-• ctid — fiziki yer (blok, ofset)
+У каждой строки есть скрытые системные поля:
+• xmin — ID транзакции, создавшей строку
+• xmax — ID транзакции, удалившей строку (0 = активна)
+• ctid — физическое расположение (блок, смещение)
 
 \`\`\`sql
-SELECT xmin, xmax, ctid, id, ad FROM islechiler LIMIT 5;
+SELECT xmin, xmax, ctid, id, name FROM employees LIMIT 5;
 \`\`\`
 
-**UPDATE zamanı:**
-1. Köhnə sətir: xmax = cari xid ilə işarələnir
-2. Yeni sətir: xmin = cari xid ilə yaradılır
-Hər ikisi diskdədir → VACUUM lazımdır!
+**При UPDATE:**
+1. Старая строка: отмечается xmax = текущий xid
+2. Новая строка: создаётся с xmin = текущий xid
+Обе на диске → нужен VACUUM!
 
-**DELETE zamanı:**
-Sətir xmax ilə işarələnir, VACUUM-a qədər fiziki silinmir.
+**При DELETE:**
+Строка отмечается xmax, физически не удаляется до VACUUM.
 
-**Snapshot (Anlıq görüntü):**
-Tranzaksiya başlayanda aktiv XID-lərin siyahısı götürülür.
-Sətir görünür: xmin qeydə alınıb VƏ (xmax=0 YAXUD xmax qeydə alınmayıb)
+**Снимок (Snapshot):**
+При старте транзакции берётся список активных XID.
+Строка видна: xmin зафиксирован И (xmax=0 ИЛИ xmax не зафиксирован)
 
 **Transaction ID Wraparound:**
 \`\`\`sql
 SELECT datname, age(datfrozenxid),
-       2147483647 - age(datfrozenxid) AS qalan_xid
+       2147483647 - age(datfrozenxid) AS xid_left
 FROM pg_database ORDER BY age(datfrozenxid) DESC;
--- age > ~1.5 mlrd → TƏHLÜKƏLİ!
+-- age > ~1.5 млрд → ОПАСНО!
 
-VACUUM FREEZE cedvel_adi;
--- autovacuum_freeze_max_age = 200mln (standart)
+VACUUM FREEZE table_name;
+-- autovacuum_freeze_max_age = 200 млн (по умолчанию)
 \`\`\``
       },
       {
-        title: "İzolyasiya Səviyyələri",
-        content: `| Səviyyə | Dirty Read | Non-repeatable | Phantom |
-| Read Committed | xeyr | mümkündür | mümkündür |
-| Repeatable Read | xeyr | xeyr | xeyr (PG-də) |
-| Serializable | xeyr | xeyr | xeyr |
+        title: "Уровни изоляции",
+        content: `| Уровень | Грязное чтение | Неповторяемое | Фантомное |
+| Read Committed | нет | возможно | возможно |
+| Repeatable Read | нет | нет | нет (в PG) |
+| Serializable | нет | нет | нет |
 
-**Read Committed (standart):**
-Hər statement ən son qeydə alınmış məlumatları görür.
-Problem: eyni tranzaksiyada fərqli SELECT nəticələri.
+**Read Committed (по умолчанию):**
+Каждый оператор видит последние зафиксированные данные.
+Проблема: разные SELECT в одной транзакции могут вернуть разные результаты.
 
 **Repeatable Read:**
 \`\`\`sql
 SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
--- Snapshot bir dəfə götürülür (ilk SELECT-də)
--- Konflikt: ERROR: could not serialize access
+-- Снимок берётся один раз (при первом SELECT)
+-- Конфликт: ERROR: could not serialize access
 \`\`\`
 
 **Serializable (SSI):**
 \`\`\`sql
 SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
--- Tam serializasiya (PG 9.1+)
--- Konfliktdə: ERROR: could not serialize access
--- Tətbiq tranzaksiyanı MÜTLƏQ təkrar etməlidir!
+-- Полная сериализация (PG 9.1+)
+-- При конфликте: ERROR: could not serialize access
+-- Приложение ОБЯЗАНО повторить транзакцию!
 \`\`\`
 
-**Serializable üçün təkrar şablonu:**
+**Шаблон повтора для Serializable:**
 \`\`\`sql
--- Tətbiqdə (psevdokod):
+-- В приложении (псевдокод):
 LOOP
   BEGIN;
   SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
-  -- biznes məntiqi...
+  -- бизнес-логика...
   COMMIT;
-  EXIT;  -- uğur
+  EXIT;  -- успех
   EXCEPTION WHEN serialization_failure THEN
     ROLLBACK;
-    -- fasilə və təkrar
+    -- пауза и повтор
 END LOOP;
 \`\`\``
       },
       {
-        title: "Kilid mexanizmi",
-        content: `**Cədvəl kilid növləri (zəifdən güclüyə):**
+        title: "Механизм блокировок",
+        content: `**Виды блокировок таблицы (от слабых к сильным):**
 \`\`\`
 ACCESS SHARE            -- SELECT
 ROW SHARE               -- SELECT FOR UPDATE/SHARE
 ROW EXCLUSIVE           -- INSERT, UPDATE, DELETE
 SHARE UPDATE EXCLUSIVE  -- VACUUM, ANALYZE, CREATE INDEX CONCURRENTLY
-SHARE                   -- CREATE INDEX (CONCURRENTLY-siz)
+SHARE                   -- CREATE INDEX (без CONCURRENTLY)
 EXCLUSIVE               -- REFRESH MATERIALIZED VIEW CONCURRENTLY
 ACCESS EXCLUSIVE        -- ALTER TABLE, DROP, TRUNCATE, VACUUM FULL
 \`\`\`
 
-**Sətir kilidi:**
+**Блокировка строки:**
 \`\`\`sql
 SELECT * FROM t WHERE id = 1 FOR UPDATE;
 SELECT * FROM t WHERE id = 1 FOR UPDATE SKIP LOCKED;
@@ -823,17 +823,17 @@ SELECT * FROM t WHERE id = 1 FOR UPDATE NOWAIT;
 SELECT * FROM t WHERE id = 1 FOR SHARE;
 \`\`\`
 
-**Kilid monitorinqi:**
+**Мониторинг блокировок:**
 \`\`\`sql
-SELECT blocked.pid AS blok_pid, blocked.query AS blok_sorgu,
-       blocking.pid AS bloke_eden_pid, blocking.query AS bloke_eden_sorgu,
-       now()-blocked.query_start AS gozleme_muddeti
+SELECT blocked.pid AS blocked_pid, blocked.query AS blocked_query,
+       blocking.pid AS blocking_pid, blocking.query AS blocking_query,
+       now()-blocked.query_start AS wait_time
 FROM pg_stat_activity blocked
 JOIN pg_stat_activity blocking
     ON blocking.pid = ANY(pg_blocking_pids(blocked.pid));
 
-SELECT pg_cancel_backend(pid);    -- yumşaq: sorğunu ləğv et
-SELECT pg_terminate_backend(pid); -- sərt: bağlantını öldür
+SELECT pg_cancel_backend(pid);    -- мягко: отменить запрос
+SELECT pg_terminate_backend(pid); -- жёстко: убить соединение
 
 SET lock_timeout = '5s';
 SET statement_timeout = '30s';
@@ -842,42 +842,42 @@ SET deadlock_timeout = '1s';
       },
       {
         title: "Advisory Locks",
-        content: `**Tətbiq kilid mexanizmi (obyektlərə bağlı deyil):**
+        content: `**Механизм блокировки на уровне приложения (не привязан к объектам):**
 
-**Sessiya kilidi:**
+**Блокировка сессии:**
 \`\`\`sql
-SELECT pg_advisory_lock(42);            -- al (gözlə)
-SELECT pg_advisory_unlock(42);          -- burax
-SELECT pg_advisory_unlock_all();        -- hamısını burax
-SELECT pg_try_advisory_lock(42);        -- gözləmədən → boolean
-SELECT pg_advisory_lock_shared(42);     -- paylaşılan kilit
+SELECT pg_advisory_lock(42);            -- взять (ждать)
+SELECT pg_advisory_unlock(42);          -- освободить
+SELECT pg_advisory_unlock_all();        -- освободить все
+SELECT pg_try_advisory_lock(42);        -- без ожидания → boolean
+SELECT pg_advisory_lock_shared(42);     -- разделяемая блокировка
 \`\`\`
 
-**Tranzaksiya kilidi (COMMIT/ROLLBACK-da avtomatik azad olur):**
+**Блокировка транзакции (освобождается при COMMIT/ROLLBACK):**
 \`\`\`sql
 SELECT pg_advisory_xact_lock(42);
 SELECT pg_try_advisory_xact_lock(42);
 \`\`\`
 
-**Tapşırığın paralel işləməsinin qarşısını alma:**
+**Предотвращение параллельного запуска задачи:**
 \`\`\`sql
 DO $$
 BEGIN
-    IF NOT pg_try_advisory_lock(hashtext('gece_hesabati')) THEN
-        RAISE NOTICE 'Artıq işləyir, ötür';
+    IF NOT pg_try_advisory_lock(hashtext('night_report')) THEN
+        RAISE NOTICE 'Уже запущено, пропускаем';
         RETURN;
     END IF;
-    -- tapşırığı icra et...
-    PERFORM pg_advisory_unlock(hashtext('gece_hesabati'));
+    -- выполнить задачу...
+    PERFORM pg_advisory_unlock(hashtext('night_report'));
 END $$;
 \`\`\`
 
-**İş növbəsi şablonu:**
+**Шаблон очереди задач:**
 \`\`\`sql
-SELECT id, yuk FROM isler
-WHERE status = 'gozleyir'
+SELECT id, payload FROM jobs
+WHERE status = 'pending'
   AND pg_try_advisory_lock(id)
-ORDER BY oncelik DESC, yaradildi
+ORDER BY priority DESC, created_at
 LIMIT 1 FOR UPDATE SKIP LOCKED;
 \`\`\`
 
@@ -889,25 +889,25 @@ FROM pg_locks WHERE locktype = 'advisory';
     ]
   },
   {
-    id: "performance", icon: "🚀", title: "Performans", color: "#CE93D8",
+    id: "performance", icon: "🚀", title: "Производительность", color: "#CE93D8",
     topics: [
       {
-        title: "VACUUM və şişkinlik",
-        content: `**VACUUM nə üçün lazımdır:**
-• Ölü sətirləri (dead tuples) silir → yenidən istifadə üçün yer açır
-• Görünürlük xəritəsini yeniləyir → Index Only Scan-i sürətləndirir
-• XID-ləri dondurur (wraparound-un qarşısını alır)
-• Diski OS-ə qaytırmır (yalnız VACUUM FULL bunu edir)
+        title: "VACUUM и раздувание",
+        content: `**Зачем нужен VACUUM:**
+• Удаляет мёртвые кортежи (dead tuples) → освобождает место для повторного использования
+• Обновляет карту видимости → ускоряет Index Only Scan
+• Замораживает XID (предотвращает wraparound)
+• Не возвращает место ОС (только VACUUM FULL это делает)
 
 \`\`\`sql
-VACUUM cedvel_adi;
-VACUUM VERBOSE cedvel_adi;
-VACUUM ANALYZE cedvel_adi;
-VACUUM FREEZE cedvel_adi;
-VACUUM FULL cedvel_adi;   -- KİLİDLƏYİR! maintenance window-da istifadə edin
+VACUUM table_name;
+VACUUM VERBOSE table_name;
+VACUUM ANALYZE table_name;
+VACUUM FREEZE table_name;
+VACUUM FULL table_name;   -- БЛОКИРУЕТ! Использовать в окне обслуживания
 \`\`\`
 
-**Autovacuum parametrləri:**
+**Параметры autovacuum:**
 \`\`\`
 autovacuum_vacuum_threshold = 50
 autovacuum_vacuum_scale_factor = 0.2
@@ -915,9 +915,9 @@ autovacuum_analyze_scale_factor = 0.1
 autovacuum_vacuum_cost_delay = 2ms
 \`\`\`
 
-**İsti cədvəl üçün:**
+**Для горячей таблицы:**
 \`\`\`sql
-ALTER TABLE sifarisler SET (
+ALTER TABLE orders SET (
     autovacuum_vacuum_scale_factor = 0.01,
     autovacuum_analyze_scale_factor = 0.005,
     autovacuum_vacuum_cost_delay = 0,
@@ -925,66 +925,66 @@ ALTER TABLE sifarisler SET (
 );
 \`\`\`
 
-**Monitorinq:**
+**Мониторинг:**
 \`\`\`sql
 SELECT relname, n_live_tup, n_dead_tup,
-       round(n_dead_tup::numeric/NULLIF(n_live_tup+n_dead_tup,0)*100,1) AS olu_faiz,
+       round(n_dead_tup::numeric/NULLIF(n_live_tup+n_dead_tup,0)*100,1) AS dead_pct,
        last_vacuum, last_autovacuum
 FROM pg_stat_user_tables ORDER BY n_dead_tup DESC LIMIT 20;
 \`\`\``
       },
       {
-        title: "Partisiyalama",
-        content: `**RANGE — aralıq üzrə:**
+        title: "Партиционирование",
+        content: `**RANGE — по диапазону:**
 \`\`\`sql
-CREATE TABLE sifarisler (
-    id BIGINT, yaradildi TIMESTAMPTZ NOT NULL, mebleg NUMERIC
-) PARTITION BY RANGE (yaradildi);
+CREATE TABLE orders (
+    id BIGINT, created_at TIMESTAMPTZ NOT NULL, amount NUMERIC
+) PARTITION BY RANGE (created_at);
 
-CREATE TABLE sifarisler_2024q1 PARTITION OF sifarisler
+CREATE TABLE orders_2024q1 PARTITION OF orders
     FOR VALUES FROM ('2024-01-01') TO ('2024-04-01');
-CREATE TABLE sifarisler_default PARTITION OF sifarisler DEFAULT;
+CREATE TABLE orders_default PARTITION OF orders DEFAULT;
 \`\`\`
 
-**LIST — dəyərlər siyahısı:**
+**LIST — по списку значений:**
 \`\`\`sql
-CREATE TABLE satislar PARTITION BY LIST (region);
-CREATE TABLE satislar_az PARTITION OF satislar
-    FOR VALUES IN ('Bakı', 'Gəncə', 'Sumqayıt');
+CREATE TABLE sales PARTITION BY LIST (region);
+CREATE TABLE sales_ru PARTITION OF sales
+    FOR VALUES IN ('Москва', 'СПб', 'Казань');
 \`\`\`
 
-**HASH — bərabər paylanma:**
+**HASH — равномерное распределение:**
 \`\`\`sql
-CREATE TABLE jurnallar PARTITION BY HASH (istifadeci_id);
-CREATE TABLE jurnallar_p0 PARTITION OF jurnallar
+CREATE TABLE logs PARTITION BY HASH (user_id);
+CREATE TABLE logs_p0 PARTITION OF logs
     FOR VALUES WITH (MODULUS 4, REMAINDER 0);
 \`\`\`
 
-**İdarəetmə:**
+**Управление:**
 \`\`\`sql
--- Yeni partisiya əlavə et
-CREATE TABLE sifarisler_2025q1 PARTITION OF sifarisler
+-- Добавить новую партицию
+CREATE TABLE orders_2025q1 PARTITION OF orders
     FOR VALUES FROM ('2025-01-01') TO ('2025-04-01');
 
--- Ayır (PG 14+: CONCURRENTLY — kilidləmədən)
-ALTER TABLE sifarisler DETACH PARTITION sifarisler_2024q1 CONCURRENTLY;
+-- Отсоединить (PG 14+: CONCURRENTLY — без блокировки)
+ALTER TABLE orders DETACH PARTITION orders_2024q1 CONCURRENTLY;
 
--- Sil
-DROP TABLE sifarisler_2024q1;
+-- Удалить
+DROP TABLE orders_2024q1;
 
--- İndeks bütün partisiyalarda avtomatik yaranır
-CREATE INDEX ON sifarisler (yaradildi);
+-- Индекс автоматически создаётся на всех партициях
+CREATE INDEX ON orders (created_at);
 \`\`\``
       },
       {
         title: "Connection Pooling",
-        content: `**Problem:** Hər bağlantı = OS prosesi (~5-10 MB RAM). 1000 bağlantıda → 5-10 GB overhead!
+        content: `**Проблема:** Каждое соединение = процесс ОС (~5–10 МБ RAM). 1000 соединений → 5–10 ГБ overhead!
 
 **PgBouncer:**
-Rejimlər:
-• Session — müştəri bağlantı saxlayır (ən az səmərəli)
-• Transaction — COMMIT/ROLLBACK-dan sonra havuza qayıdır (tövsiyə edilir)
-• Statement — hər sorğudan sonra
+Режимы:
+• Session — клиент удерживает соединение (наименее эффективно)
+• Transaction — возврат в пул после COMMIT/ROLLBACK (рекомендуется)
+• Statement — после каждого запроса
 
 \`\`\`ini
 [databases]
@@ -1001,21 +1001,21 @@ server_idle_timeout = 600
 max_db_connections = 50
 \`\`\`
 
-**Monitorinq:**
+**Мониторинг:**
 \`\`\`sql
 psql -p 6432 pgbouncer
-SHOW POOLS;    -- havuz vəziyyəti
-SHOW STATS;    -- statistika
-SHOW CLIENTS;  -- müştəri bağlantıları
-RELOAD;        -- konfiqurasiyanı yenidən oxu
+SHOW POOLS;    -- состояние пулов
+SHOW STATS;    -- статистика
+SHOW CLIENTS;  -- клиентские соединения
+RELOAD;        -- перечитать конфигурацию
 \`\`\`
 
-**Transaction mode məhdudiyyətləri:**
-SET, LISTEN/NOTIFY, sessiya advisory locks — işləmir`
+**Ограничения transaction mode:**
+SET, LISTEN/NOTIFY, сессионные advisory locks — не работают`
       },
       {
-        title: "Paralel sorğular",
-        content: `**Parametrlər:**
+        title: "Параллельные запросы",
+        content: `**Параметры:**
 \`\`\`
 max_parallel_workers = 8
 max_parallel_workers_per_gather = 4
@@ -1023,14 +1023,14 @@ max_parallel_maintenance_workers = 4  -- CREATE INDEX, VACUUM
 min_parallel_table_scan_size = 8MB
 \`\`\`
 
-**İdarəetmə:**
+**Управление:**
 \`\`\`sql
 SET max_parallel_workers_per_gather = 4;
-ALTER TABLE boyuk_cedvel SET (parallel_workers = 4);
-SET max_parallel_workers_per_gather = 0;  -- söndür
+ALTER TABLE big_table SET (parallel_workers = 4);
+SET max_parallel_workers_per_gather = 0;  -- отключить
 \`\`\`
 
-**Paralel işlənir:**
+**Выполняется параллельно:**
 • Parallel Seq Scan
 • Parallel Bitmap Heap Scan
 • Parallel Hash Join (PG 11+)
@@ -1038,71 +1038,71 @@ SET max_parallel_workers_per_gather = 0;  -- söndür
 • CREATE INDEX (PG 11+)
 • VACUUM (PG 13+)
 
-**Paralel işlənmir:**
+**Не выполняется параллельно:**
 • INSERT/UPDATE/DELETE
-• PARALLEL UNSAFE funksiyalar
+• Функции PARALLEL UNSAFE
 • FOR UPDATE
 
 \`\`\`sql
--- Funksiyanın volatility-sini yoxla
-SELECT proname, proparallel FROM pg_proc WHERE proname = 'menim_funksiyam';
+-- Проверить volatility функции
+SELECT proname, proparallel FROM pg_proc WHERE proname = 'my_function';
 -- s=safe, r=restricted, u=unsafe
 
-CREATE FUNCTION menim_funksiyam() RETURNS void
+CREATE FUNCTION my_function() RETURNS void
 LANGUAGE sql PARALLEL SAFE AS '...';
 \`\`\``
       },
       {
-        title: "Materialized Görünüşlər",
-        content: `**Yaratma və yeniləmə:**
+        title: "Материализованные представления",
+        content: `**Создание и обновление:**
 \`\`\`sql
-CREATE MATERIALIZED VIEW aylik_satislar AS
-SELECT DATE_TRUNC('ay', yaradildi) AS ay,
-       kateqoriya_id, SUM(mebleg) AS toplam
-FROM sifarisler GROUP BY 1, 2
+CREATE MATERIALIZED VIEW monthly_sales AS
+SELECT DATE_TRUNC('month', created_at) AS month,
+       category_id, SUM(amount) AS total
+FROM orders GROUP BY 1, 2
 WITH DATA;
 
--- Yenilə (oxumanı kilidləyir!)
-REFRESH MATERIALIZED VIEW aylik_satislar;
+-- Обновить (блокирует чтение!)
+REFRESH MATERIALIZED VIEW monthly_sales;
 
--- Kilidləmədən (unikal indeks lazımdır!)
-CREATE UNIQUE INDEX ON aylik_satislar (ay, kateqoriya_id);
-REFRESH MATERIALIZED VIEW CONCURRENTLY aylik_satislar;
+-- Без блокировки (нужен уникальный индекс!)
+CREATE UNIQUE INDEX ON monthly_sales (month, category_id);
+REFRESH MATERIALIZED VIEW CONCURRENTLY monthly_sales;
 \`\`\`
 
-**Yeniləmə strategiyaları:**
+**Стратегии обновления:**
 \`\`\`sql
--- pg_cron ilə cədvəl üzrə
-SELECT cron.schedule('yenile-mv', '0 * * * *',
-    'REFRESH MATERIALIZED VIEW CONCURRENTLY aylik_satislar');
+-- По расписанию через pg_cron
+SELECT cron.schedule('refresh-mv', '0 * * * *',
+    'REFRESH MATERIALIZED VIEW CONCURRENTLY monthly_sales');
 
--- İnkremental yeniləmə
+-- Инкрементальное обновление
 BEGIN;
-DELETE FROM mv_gunluk WHERE tarix = CURRENT_DATE;
-INSERT INTO mv_gunluk SELECT ... WHERE DATE(yaradildi) = CURRENT_DATE;
+DELETE FROM mv_daily WHERE date = CURRENT_DATE;
+INSERT INTO mv_daily SELECT ... WHERE DATE(created_at) = CURRENT_DATE;
 COMMIT;
 \`\`\`
 
-**Nə vaxt istifadə etmək:**
-• Ağır analitik sorğular (böyük aqreqasiyalar)
-• Məlumat nadir yenilənir (saatda/gündə bir dəfə)
-• Kiçik gecikmə qəbul edilə bilər`
+**Когда использовать:**
+• Тяжёлые аналитические запросы (большие агрегации)
+• Данные редко обновляются (раз в час/день)
+• Небольшая задержка приемлема`
       }
     ]
   },
   {
-    id: "replication", icon: "🔄", title: "Replikasiya və Yüksək Mövcudluq", color: "#80DEEA",
+    id: "replication", icon: "🔄", title: "Репликация и Высокая Доступность", color: "#80DEEA",
     topics: [
       {
-        title: "Fiziki Replikasiya",
-        content: `**WAL səviyyələri:**
+        title: "Физическая репликация",
+        content: `**Уровни WAL:**
 \`\`\`
-wal_level = minimal    -- yalnız çöküş bərpası
-wal_level = replica    -- fiziki replikasiya (standart)
-wal_level = logical    -- + məntiqi replikasiya
+wal_level = minimal    -- только восстановление после сбоя
+wal_level = replica    -- физическая репликация (по умолчанию)
+wal_level = logical    -- + логическая репликация
 \`\`\`
 
-**Primary qurulumu:**
+**Настройка Primary:**
 \`\`\`
 wal_level = replica
 max_wal_senders = 10
@@ -1113,133 +1113,133 @@ hot_standby = on
 host replication replicator 10.0.0.0/8 scram-sha-256
 \`\`\`
 \`\`\`sql
-CREATE ROLE replicator REPLICATION LOGIN PASSWORD 'sirr';
+CREATE ROLE replicator REPLICATION LOGIN PASSWORD 'secret';
 \`\`\`
 
-**Replika yaratmaq:**
+**Создание реплики:**
 \`\`\`bash
 pg_basebackup -h primary_host -U replicator \
   -D /var/lib/postgresql/15/standby \
   -Fp -Xs -P -R
 \`\`\`
 
-**Monitorinq:**
+**Мониторинг:**
 \`\`\`sql
--- Primary-də:
+-- На Primary:
 SELECT client_addr, state, sent_lsn, replay_lsn,
        write_lag, flush_lag, replay_lag, sync_state
 FROM pg_stat_replication;
 
--- Standby-da:
+-- На Standby:
 SELECT pg_is_in_recovery();
-SELECT now() - pg_last_xact_replay_timestamp() AS gec_qalma;
+SELECT now() - pg_last_xact_replay_timestamp() AS lag;
 \`\`\`
 
-**Sinxron replikasiya:**
+**Синхронная репликация:**
 \`\`\`
 synchronous_standby_names = 'FIRST 1 (standby1, standby2)'
 \`\`\``
       },
       {
-        title: "Replikasiya Slotları",
-        content: `**WAL-ın replika tərəfindən alınana qədər silinməməsini təmin edir.**
-TƏHLÜKƏLİ: Replika uzun müddət bağlı qalsa — disk dolacaq!
+        title: "Слоты репликации",
+        content: `**Гарантирует, что WAL не будет удалён до получения репликой.**
+ОПАСНО: если реплика долго отключена — диск заполнится!
 
 \`\`\`sql
--- Fiziki slot yarat
-SELECT pg_create_physical_replication_slot('replika1_slotu');
--- postgresql.conf standby-da: primary_slot_name = 'replika1_slotu'
+-- Создать физический слот
+SELECT pg_create_physical_replication_slot('replica1_slot');
+-- В postgresql.conf standby: primary_slot_name = 'replica1_slot'
 
--- Məntiqi slot yarat
-SELECT pg_create_logical_replication_slot('menim_slotum', 'pgoutput');
+-- Создать логический слот
+SELECT pg_create_logical_replication_slot('my_slot', 'pgoutput');
 
--- Yoxla
+-- Просмотр
 SELECT slot_name, slot_type, active, restart_lsn,
-       pg_size_pretty(pg_wal_lsn_diff(pg_current_wal_lsn(), restart_lsn)) AS gec_qalma
+       pg_size_pretty(pg_wal_lsn_diff(pg_current_wal_lsn(), restart_lsn)) AS lag
 FROM pg_replication_slots;
 
--- Sil
-SELECT pg_drop_replication_slot('menim_slotum');
+-- Удалить
+SELECT pg_drop_replication_slot('my_slot');
 \`\`\`
 
-**Disk dolmasının qarşısını almaq:**
+**Предотвращение заполнения диска:**
 \`\`\`sql
 SELECT slot_name, active,
        pg_size_pretty(pg_wal_lsn_diff(
-           pg_current_wal_lsn(), restart_lsn)) AS wal_gecikmesi
+           pg_current_wal_lsn(), restart_lsn)) AS wal_lag
 FROM pg_replication_slots WHERE NOT active;
 
--- PG 13+: slot silinməzdən əvvəl WAL həddini qur
+-- PG 13+: установить лимит WAL перед удалением слота
 -- max_slot_wal_keep_size = 10GB
 \`\`\``
       },
       {
-        title: "Məntiqi Replikasiya",
-        content: `**Üstünlüklər:** Müxtəlif PG versiyaları arasında replikasiya, cədvəl/sətir/sütun filtrasiyası
+        title: "Логическая репликация",
+        content: `**Преимущества:** Репликация между разными версиями PG, фильтрация таблиц/строк/столбцов
 
-**Nəşriyyatçı (Publisher):**
+**Издатель (Publisher):**
 \`\`\`sql
--- wal_level = logical (postgresql.conf-da)
+-- wal_level = logical (в postgresql.conf)
 
-CREATE PUBLICATION pub_sifarisler FOR TABLE sifarisler, sifaris_elementleri;
-CREATE PUBLICATION pub_az FOR TABLE sifarisler WHERE (region = 'AZ');
-CREATE PUBLICATION pub_qismli FOR TABLE islechiler (id, ad, dept_id);
+CREATE PUBLICATION pub_orders FOR TABLE orders, order_items;
+CREATE PUBLICATION pub_ru FOR TABLE orders WHERE (region = 'RU');
+CREATE PUBLICATION pub_partial FOR TABLE employees (id, name, dept_id);
 
-ALTER PUBLICATION pub_sifarisler ADD TABLE catdirilmalar;
-DROP PUBLICATION pub_sifarisler;
+ALTER PUBLICATION pub_orders ADD TABLE deliveries;
+DROP PUBLICATION pub_orders;
 
 SELECT * FROM pg_publication;
 SELECT * FROM pg_publication_tables;
 \`\`\`
 
-**Abunəçi (Subscriber):**
+**Подписчик (Subscriber):**
 \`\`\`sql
-CREATE SUBSCRIPTION abune_sifarisler
+CREATE SUBSCRIPTION sub_orders
     CONNECTION 'host=primary dbname=mydb user=replicator'
-    PUBLICATION pub_sifarisler;
+    PUBLICATION pub_orders;
 
-ALTER SUBSCRIPTION abune_sifarisler DISABLE;
-ALTER SUBSCRIPTION abune_sifarisler ENABLE;
-ALTER SUBSCRIPTION abune_sifarisler REFRESH PUBLICATION;
+ALTER SUBSCRIPTION sub_orders DISABLE;
+ALTER SUBSCRIPTION sub_orders ENABLE;
+ALTER SUBSCRIPTION sub_orders REFRESH PUBLICATION;
 
 SELECT * FROM pg_stat_subscription;
 \`\`\`
 
-**Məhdudiyyətlər:**
-• DDL replikasiya edilmir
-• Cədvəllərdə PK və ya REPLICA IDENTITY lazımdır
+**Ограничения:**
+• DDL не реплицируется
+• Таблицы должны иметь PK или REPLICA IDENTITY
 \`\`\`sql
 ALTER TABLE t REPLICA IDENTITY FULL;
-ALTER TABLE t REPLICA IDENTITY USING INDEX idx_unikal;
+ALTER TABLE t REPLICA IDENTITY USING INDEX idx_unique;
 \`\`\``
       },
       {
-        title: "Patroni və Yüksək Mövcudluq",
-        content: `**Arxitektura:**
+        title: "Patroni и Высокая Доступность",
+        content: `**Архитектура:**
 \`\`\`
       DCS (etcd/Consul/ZooKeeper)
-         lider seçimi
+         выбор лидера
     ┌────────────┼────────────┐
   node1        node2        node3
- Primary      Replika      Replika
+ Primary      Реплика      Реплика
     ▲ HAProxy / VIP
- müştərilər
+ клиенты
 \`\`\`
 
-**patronictl əmrləri:**
+**Команды patronictl:**
 \`\`\`bash
 patronictl -c /etc/patroni.yml list
 patronictl -c /etc/patroni.yml switchover --master node1 --candidate node2
 patronictl -c /etc/patroni.yml failover --master node1
-patronictl -c /etc/patroni.yml restart klaster_adi node1
-patronictl -c /etc/patroni.yml reload klaster_adi
+patronictl -c /etc/patroni.yml restart cluster_name node1
+patronictl -c /etc/patroni.yml reload cluster_name
 patronictl -c /etc/patroni.yml edit-config
-patronictl -c /etc/patroni.yml pause klaster_adi
-patronictl -c /etc/patroni.yml resume klaster_adi
+patronictl -c /etc/patroni.yml pause cluster_name
+patronictl -c /etc/patroni.yml resume cluster_name
 patronictl -c /etc/patroni.yml history
 \`\`\`
 
-**HAProxy yük balansı:**
+**Балансировка нагрузки HAProxy:**
 \`\`\`
 backend pg_primary
   option httpchk GET /primary
@@ -1252,7 +1252,7 @@ backend pg_replicas
   server node2 10.0.0.2:5432 check port 8008
 \`\`\`
 
-**Gecikdirilmiş replika (təsadüfi silinmədən qorunma):**
+**Задержанная реплика (защита от случайного удаления):**
 \`\`\`
 recovery_min_apply_delay = '1h'
 \`\`\``
@@ -1260,86 +1260,86 @@ recovery_min_apply_delay = '1h'
     ]
   },
   {
-    id: "backup", icon: "💾", title: "Ehtiyat Nüsxəsi və Bərpa", color: "#FFCC80",
+    id: "backup", icon: "💾", title: "Резервное копирование и Восстановление", color: "#FFCC80",
     topics: [
       {
         title: "pg_dump",
-        content: `**Format növləri:**
-• plain (p) — SQL skript, oxuna bilən mətn
-• custom (c) — sıxılmış binar, paralel bərpa
-• directory (d) — paralel dump (-j N)
-• tar (t) — tar arxiv
+        content: `**Форматы:**
+• plain (p) — SQL-скрипт, читаемый текст
+• custom (c) — сжатый бинарный, параллельное восстановление
+• directory (d) — параллельный дамп (-j N)
+• tar (t) — tar-архив
 
 \`\`\`bash
-# Custom format (tövsiyə edilir!)
+# Custom формат (рекомендуется!)
 pg_dump -U postgres -Fc mydb > mydb.dump
-pg_dump -U postgres -Fc -Z 9 mydb > mydb.dump   # maks sıxışdırma
+pg_dump -U postgres -Fc -Z 9 mydb > mydb.dump   # макс. сжатие
 
-# Paralel dump
+# Параллельный дамп
 pg_dump -U postgres -Fd -j 8 mydb -f /backup/mydb_dir/
 
-# Yalnız struktur / yalnız məlumat
+# Только структура / только данные
 pg_dump -U postgres -s mydb > schema.sql
 pg_dump -U postgres -a mydb > data.sql
 
-# Müəyyən cədvəllər
-pg_dump -U postgres -t sifarisler -t sifaris_elementleri mydb > sifarisler.dump
+# Определённые таблицы
+pg_dump -U postgres -t orders -t order_items mydb > orders.dump
 
-# Bütün klaster
-pg_dumpall -U postgres > klaster.sql
-pg_dumpall -U postgres -g > global_only.sql
+# Весь кластер
+pg_dumpall -U postgres > cluster.sql
+pg_dumpall -U postgres -g > globals_only.sql
 \`\`\`
 
-**Bərpa:**
+**Восстановление:**
 \`\`\`bash
 psql -U postgres mydb < mydb.sql
 pg_restore -U postgres -d mydb mydb.dump
-pg_restore -U postgres -d mydb -j 8 mydb.dump   # paralel
-pg_restore -U postgres -C -d postgres mydb.dump  # DB yarat
-pg_restore -U postgres -d mydb -t sifarisler mydb.dump  # bir cədvəl
+pg_restore -U postgres -d mydb -j 8 mydb.dump   # параллельно
+pg_restore -U postgres -C -d postgres mydb.dump  # создать БД
+pg_restore -U postgres -d mydb -t orders mydb.dump  # одна таблица
 pg_restore -U postgres -d mydb --clean mydb.dump
 \`\`\``
       },
       {
-        title: "PITR (Zaman Nöqtəsinə Bərpa)",
-        content: `**Prinsip:** Əsas ehtiyat nüsxəsi + davamlı WAL arxivi → istənilən ana bərpa
+        title: "PITR (восстановление на момент времени)",
+        content: `**Принцип:** Базовый бэкап + непрерывный архив WAL → восстановление на любой момент
 
-**WAL arxivləşdirməsi:**
+**Архивирование WAL:**
 \`\`\`
 archive_mode = on
-archive_command = 'cp %p /arxiv/%f'
-archive_command = 'aws s3 cp %p s3://kova/wal/%f'
-archive_timeout = 60  -- hər 60 san bir WAL faylını arxivlə
+archive_command = 'cp %p /archive/%f'
+archive_command = 'aws s3 cp %p s3://bucket/wal/%f'
+archive_timeout = 60  -- архивировать WAL-файл каждые 60 сек
 \`\`\`
 
-**Əsas ehtiyat nüsxəsi:**
+**Базовый бэкап:**
 \`\`\`bash
 pg_basebackup -U postgres -D /backup/base \
   -Ft -z -P --wal-method=stream
 \`\`\`
 
-**Bərpa konfiqurasiyası (PG 12+):**
+**Конфигурация восстановления (PG 12+):**
 \`\`\`bash
 cp -r /backup/base/* $PGDATA/
 touch $PGDATA/recovery.signal
 \`\`\`
 \`\`\`
-# postgresql.conf-da:
-restore_command = 'cp /arxiv/%f %p'
+# В postgresql.conf:
+restore_command = 'cp /archive/%f %p'
 
-# Bərpa hədəfi:
+# Цель восстановления:
 recovery_target_time = '2025-06-01 14:30:00 UTC'
 recovery_target_lsn  = '0/15000060'
-recovery_target_name = 'miqrasiyadan_once'
+recovery_target_name = 'before_migration'
 recovery_target       = 'immediate'
 
 recovery_target_inclusive = true
 recovery_target_action = 'promote'
 \`\`\`
 
-**Adlandırılmış bərpa nöqtələri:**
+**Именованные точки восстановления:**
 \`\`\`sql
-SELECT pg_create_restore_point('miqrasiyadan_once_v2');
+SELECT pg_create_restore_point('before_migration_v2');
 \`\`\``
       },
       {
@@ -1350,14 +1350,14 @@ repo1-path=/var/lib/pgbackrest
 repo1-retention-full=2
 repo1-retention-diff=7
 repo1-cipher-type=aes-256-cbc
-repo1-cipher-pass=şifrəaçarı
+repo1-cipher-pass=my_secret_key
 
-# S3 üçün:
+# Для S3:
 repo1-type=s3
-repo1-s3-bucket=pg-ehtiyat-nusxeleri
+repo1-s3-bucket=pg-backups
 repo1-s3-region=eu-central-1
-repo1-s3-key=GİRİŞ_AÇARI
-repo1-s3-key-secret=GİZLİ_ACAR
+repo1-s3-key=ACCESS_KEY
+repo1-s3-key-secret=SECRET_KEY
 
 [main]
 pg1-path=/var/lib/postgresql/15/main
@@ -1377,126 +1377,126 @@ pgbackrest --stanza=main restore \
 pgbackrest --stanza=main verify
 \`\`\`
 
-**Cədvəl (crontab):**
+**Расписание (crontab):**
 \`\`\`cron
 0 2 * * 0 pgbackrest --stanza=main backup --type=full
 0 2 * * 1-6 pgbackrest --stanza=main backup --type=diff
 \`\`\``
       },
       {
-        title: "Ehtiyat nüsxəsi strategiyası",
-        content: `**RPO və RTO:**
-• RPO (Recovery Point Objective) — icazə verilən maksimum məlumat itkisi
-• RTO (Recovery Time Objective) — maksimum bərpa müddəti
+        title: "Стратегия резервного копирования",
+        content: `**RPO и RTO:**
+• RPO (Recovery Point Objective) — максимально допустимая потеря данных
+• RTO (Recovery Time Objective) — максимальное время восстановления
 
-**Strategiya matrisi:**
-| Tələb | Həll |
-| RPO = 0 | Sinxron replikasiya |
-| RPO < 1 dəq | Streaming + WAL arxiv |
-| RPO < 1 saat | PITR ilə archive_timeout |
-| RTO < 1 dəq | Hot standby + avtomatik failover |
-| RTO < 1 saat | pg_basebackup + WAL replay |
+**Матрица стратегий:**
+| Требование | Решение |
+| RPO = 0 | Синхронная репликация |
+| RPO < 1 мин | Streaming + WAL архив |
+| RPO < 1 час | PITR с archive_timeout |
+| RTO < 1 мин | Hot standby + автофейловер |
+| RTO < 1 час | pg_basebackup + WAL replay |
 
-**3-2-1 qaydası:**
-• 3 məlumat nüsxəsi
-• 2 müxtəlif daşıyıcı
-• 1 nüsxə fərqli yerdə (başqa DC / bulud)
+**Правило 3-2-1:**
+• 3 копии данных
+• 2 разных носителя
+• 1 копия в другом месте (другой ДЦ / облако)
 
-**Bərpanın sınanması (MÜTLƏQ etmək lazımdır!):**
+**Тестирование восстановления (ОБЯЗАТЕЛЬНО!):**
 \`\`\`bash
 pg_restore -d test_db /backup/mydb.dump
-psql test_db -f /skriptler/butovluk_yoxlama.sql
-SELECT COUNT(*) FROM kritik_cedvel;
+psql test_db -f /scripts/integrity_check.sql
+SELECT COUNT(*) FROM critical_table;
 \`\`\`
 
-**Ehtiyat nüsxəsinin monitorinqi:**
+**Мониторинг бэкапов:**
 \`\`\`sql
 SELECT backup_time, backup_type, duration, size
-FROM backup_tarixi ORDER BY backup_time DESC LIMIT 5;
--- Alart: 26 saatdır uğurlu ehtiyat nüsxəsi yoxdur
+FROM backup_history ORDER BY backup_time DESC LIMIT 5;
+-- Алерт: нет успешного бэкапа за 26 часов
 \`\`\``
       }
     ]
   },
   {
-    id: "security", icon: "🛡️", title: "Təhlükəsizlik", color: "#EF9A9A",
+    id: "security", icon: "🛡️", title: "Безопасность", color: "#EF9A9A",
     topics: [
       {
-        title: "Rollar və İmtiyazlar",
-        content: `**Rol yaratma:**
+        title: "Роли и привилегии",
+        content: `**Создание ролей:**
 \`\`\`sql
-CREATE ROLE yalniz_oxu;
-CREATE ROLE oxu_yaz;
-CREATE USER app_user WITH PASSWORD 'sirr' LOGIN;
-CREATE USER hesabat WITH PASSWORD 'sirr' LOGIN CONNECTION LIMIT 5;
-CREATE USER muveqqeti WITH PASSWORD 'p' LOGIN VALID UNTIL '2025-12-31';
+CREATE ROLE read_only;
+CREATE ROLE read_write;
+CREATE USER app_user WITH PASSWORD 'secret' LOGIN;
+CREATE USER report WITH PASSWORD 'secret' LOGIN CONNECTION LIMIT 5;
+CREATE USER temp_user WITH PASSWORD 'p' LOGIN VALID UNTIL '2025-12-31';
 
-GRANT yalniz_oxu TO oxu_yaz;
-GRANT oxu_yaz TO admin_db;
-GRANT admin_db TO tətbiq_adminı;
+GRANT read_only TO read_write;
+GRANT read_write TO db_admin;
+GRANT db_admin TO app_admin;
 \`\`\`
 
-**İmtiyazlar:**
+**Привилегии:**
 \`\`\`sql
 REVOKE CONNECT ON DATABASE mydb FROM PUBLIC;
-GRANT CONNECT ON DATABASE mydb TO yalniz_oxu;
-GRANT USAGE ON SCHEMA public TO yalniz_oxu, oxu_yaz;
-GRANT CREATE ON SCHEMA public TO oxu_yaz;
-GRANT SELECT ON ALL TABLES IN SCHEMA public TO yalniz_oxu;
-GRANT SELECT,INSERT,UPDATE,DELETE ON ALL TABLES IN SCHEMA public TO oxu_yaz;
-GRANT USAGE,SELECT ON ALL SEQUENCES IN SCHEMA public TO oxu_yaz;
+GRANT CONNECT ON DATABASE mydb TO read_only;
+GRANT USAGE ON SCHEMA public TO read_only, read_write;
+GRANT CREATE ON SCHEMA public TO read_write;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO read_only;
+GRANT SELECT,INSERT,UPDATE,DELETE ON ALL TABLES IN SCHEMA public TO read_write;
+GRANT USAGE,SELECT ON ALL SEQUENCES IN SCHEMA public TO read_write;
 \`\`\`
 
-**Gələcək obyektlər üçün (çox vacib!):**
+**Для будущих объектов (очень важно!):**
 \`\`\`sql
 ALTER DEFAULT PRIVILEGES IN SCHEMA public
-    GRANT SELECT ON TABLES TO yalniz_oxu;
+    GRANT SELECT ON TABLES TO read_only;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public
-    GRANT SELECT,INSERT,UPDATE,DELETE ON TABLES TO oxu_yaz;
+    GRANT SELECT,INSERT,UPDATE,DELETE ON TABLES TO read_write;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public
-    GRANT USAGE ON SEQUENCES TO oxu_yaz;
+    GRANT USAGE ON SEQUENCES TO read_write;
 
--- Sütun səviyyəsində:
-GRANT SELECT (id, ad, dept_id) ON islechiler TO yalniz_oxu;
+-- На уровне столбцов:
+GRANT SELECT (id, name, dept_id) ON employees TO read_only;
 \`\`\``
       },
       {
-        title: "Sətir Səviyyəsində Təhlükəsizlik (RLS)",
+        title: "Безопасность на уровне строк (RLS)",
         content: `\`\`\`sql
-ALTER TABLE senedler ENABLE ROW LEVEL SECURITY;
-ALTER TABLE senedler FORCE ROW LEVEL SECURITY;  -- sahibi üçün də
+ALTER TABLE documents ENABLE ROW LEVEL SECURITY;
+ALTER TABLE documents FORCE ROW LEVEL SECURITY;  -- даже для владельца
 
--- Siyasət: istifadəçi yalnız öz sənədlərini görür
-CREATE POLICY istifadeci_senedleri ON senedler
+-- Политика: пользователь видит только свои документы
+CREATE POLICY user_docs ON documents
     FOR ALL TO PUBLIC
-    USING (sahib_id = cari_istifadeci_id())
-    WITH CHECK (sahib_id = cari_istifadeci_id());
+    USING (owner_id = current_user_id())
+    WITH CHECK (owner_id = current_user_id());
 
--- Ayrı siyasətlər
-CREATE POLICY oz_senedleri_oxu ON senedler FOR SELECT
-    USING (sahib_id = cari_istifadeci_id());
-CREATE POLICY umumi_senedler ON senedler FOR SELECT
-    USING (umumidir = true);
-CREATE POLICY admin_hepsi ON senedler FOR ALL TO admin_rolu
+-- Раздельные политики
+CREATE POLICY own_docs_read ON documents FOR SELECT
+    USING (owner_id = current_user_id());
+CREATE POLICY public_docs ON documents FOR SELECT
+    USING (is_public = true);
+CREATE POLICY admin_all ON documents FOR ALL TO admin_role
     USING (true);
 
--- İstifadəçi ID funksiyası
-CREATE FUNCTION cari_istifadeci_id() RETURNS INT AS $$
-    SELECT id FROM istifadeciler WHERE istifadeci_adi = current_user;
+-- Функция получения ID пользователя
+CREATE FUNCTION current_user_id() RETURNS INT AS $$
+    SELECT id FROM users WHERE username = current_user;
 $$ LANGUAGE sql SECURITY DEFINER STABLE;
 \`\`\`
 
-**Connection pooling üçün:**
+**Для connection pooling:**
 \`\`\`sql
-SET app.cari_istifadeci_id = '42';
+SET app.current_user_id = '42';
 
-CREATE POLICY sessiya_siyaseti ON senedler FOR ALL
-    USING (sahib_id = current_setting('app.cari_istifadeci_id')::INT);
+CREATE POLICY session_policy ON documents FOR ALL
+    USING (owner_id = current_setting('app.current_user_id')::INT);
 \`\`\``
       },
       {
-        title: "SSL və Şifrələmə",
-        content: `**SSL konfiqurasiyası:**
+        title: "SSL и шифрование",
+        content: `**Настройка SSL:**
 \`\`\`
 ssl = on
 ssl_cert_file = '/etc/ssl/certs/server.crt'
@@ -1514,28 +1514,28 @@ SELECT ssl, client_addr FROM pg_stat_ssl
 JOIN pg_stat_activity USING (pid);
 \`\`\`
 
-**pgcrypto — məlumat şifrələməsi:**
+**pgcrypto — шифрование данных:**
 \`\`\`sql
 CREATE EXTENSION pgcrypto;
 
--- Bcrypt şifrə hash
-INSERT INTO istifadeciler (email, şifre_hash)
-VALUES ('user@mail.az', crypt('parol', gen_salt('bf', 10)));
+-- Хеш пароля bcrypt
+INSERT INTO users (email, password_hash)
+VALUES ('user@mail.ru', crypt('password', gen_salt('bf', 10)));
 
-SELECT * FROM istifadeciler
-WHERE şifre_hash = crypt('parol', şifre_hash);
+SELECT * FROM users
+WHERE password_hash = crypt('password', password_hash);
 
--- Simmetrik şifrələmə (AES)
-UPDATE həssas_məlumat
-SET şifreli = pgp_sym_encrypt(aydın_mətn, 'açar', 'cipher-algo=aes256');
+-- Симметричное шифрование (AES)
+UPDATE sensitive_data
+SET encrypted = pgp_sym_encrypt(plain_text, 'key', 'cipher-algo=aes256');
 
-SELECT pgp_sym_decrypt(şifreli, 'açar') FROM həssas_məlumat;
+SELECT pgp_sym_decrypt(encrypted, 'key') FROM sensitive_data;
 
 SELECT gen_random_uuid();
 \`\`\``
       },
       {
-        title: "Audit",
+        title: "Аудит",
         content: `**pgaudit:**
 \`\`\`
 shared_preload_libraries = 'pgaudit'
@@ -1545,149 +1545,149 @@ pgaudit.log_catalog = off
 \`\`\`
 \`\`\`sql
 CREATE EXTENSION pgaudit;
-ALTER ROLE həssas_user SET pgaudit.log = 'all';
+ALTER ROLE sensitive_user SET pgaudit.log = 'all';
 \`\`\`
 
-**Kateqoriyalar:** read, write, function, role, ddl, misc, all
+**Категории:** read, write, function, role, ddl, misc, all
 
-**Təhlükəsizlik monitorinqi:**
+**Мониторинг безопасности:**
 \`\`\`sql
--- Aktiv super istifadəçi sessiyaları
+-- Активные суперпользовательские сессии
 SELECT pid, usename, client_addr, query
 FROM pg_stat_activity WHERE usesuper AND state != 'idle';
 
--- Şifrəsiz rollar (zəiflik!)
+-- Роли без пароля (уязвимость!)
 SELECT rolname FROM pg_roles
 WHERE rolcanlogin AND rolpassword IS NULL;
 
--- Köhnə MD5 şifrələr
+-- Устаревшие MD5 пароли
 SELECT rolname FROM pg_authid WHERE rolpassword LIKE 'md5%';
 
--- Etibarsız autentifikasiya metodları
+-- Небезопасные методы аутентификации
 SELECT type, database, user_name, auth_method
 FROM pg_hba_file_rules WHERE auth_method IN ('trust','password');
 \`\`\`
 
-**Ən yaxşı təcrübələr:**
+**Лучшие практики:**
 • REVOKE ALL ON SCHEMA public FROM PUBLIC
 • REVOKE CONNECT ON DATABASE FROM PUBLIC
-• scram-sha-256 istifadə edin, md5 yox
-• Rollara CONNECTION LIMIT qoyun
-• Gelişdiricilərə SUPERUSER verməyin`
+• Используйте scram-sha-256, не md5
+• Устанавливайте CONNECTION LIMIT для ролей
+• Не давайте разработчикам SUPERUSER`
       }
     ]
   },
   {
-    id: "monitoring", icon: "📊", title: "Monitorinq", color: "#A5D6A7",
+    id: "monitoring", icon: "📊", title: "Мониторинг", color: "#A5D6A7",
     topics: [
       {
-        title: "Sistem görünüşləri",
-        content: `**pg_stat_activity — aktiv proseslər:**
+        title: "Системные представления",
+        content: `**pg_stat_activity — активные процессы:**
 \`\`\`sql
 SELECT pid, usename, application_name, client_addr, state,
        wait_event_type, wait_event,
-       now()-query_start  AS sorgu_muddeti,
-       now()-state_change AS veziyyet_muddeti,
-       left(query, 120) AS sorgu
+       now()-query_start  AS query_duration,
+       now()-state_change AS state_duration,
+       left(query, 120) AS query
 FROM pg_stat_activity
 WHERE pid != pg_backend_pid()
-ORDER BY sorgu_muddeti DESC NULLS LAST;
+ORDER BY query_duration DESC NULLS LAST;
 \`\`\`
 
-**Cədvəl statistikası:**
+**Статистика таблиц:**
 \`\`\`sql
 SELECT relname, seq_scan, idx_scan,
        CASE WHEN seq_scan+idx_scan > 0
             THEN round(idx_scan::numeric/(seq_scan+idx_scan)*100,1)
-       END AS idx_istifade_faiz,
+       END AS idx_usage_pct,
        n_live_tup, n_dead_tup, last_autovacuum, last_analyze,
-       pg_size_pretty(pg_total_relation_size(relid)) AS cemi_ölçü
+       pg_size_pretty(pg_total_relation_size(relid)) AS total_size
 FROM pg_stat_user_tables ORDER BY seq_scan DESC;
 \`\`\`
 
-**Ölçülər:**
+**Размеры:**
 \`\`\`sql
 SELECT datname, pg_size_pretty(pg_database_size(datname))
 FROM pg_database ORDER BY pg_database_size(datname) DESC;
 
 SELECT schemaname, tablename,
-       pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) AS cemi,
-       pg_size_pretty(pg_indexes_size(schemaname||'.'||tablename)) AS indekslər
+       pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) AS total,
+       pg_size_pretty(pg_indexes_size(schemaname||'.'||tablename)) AS indexes
 FROM pg_tables WHERE schemaname NOT IN ('pg_catalog','information_schema')
 ORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC LIMIT 20;
 \`\`\``
       },
       {
-        title: "Keş və Performans",
-        content: `**Cache Hit Ratio (norma > 99%):**
+        title: "Кэш и производительность",
+        content: `**Cache Hit Ratio (норма > 99%):**
 \`\`\`sql
--- Baza üzrə ümumi
+-- По всей базе
 SELECT round(
     blks_hit::numeric / NULLIF(blks_hit+blks_read, 0) * 100, 2
-) AS kes_nisbeti
+) AS cache_ratio
 FROM pg_stat_database WHERE datname = current_database();
 
--- Cədvəl üzrə
+-- По таблицам
 SELECT relname,
        round(heap_blks_hit::numeric /
-             NULLIF(heap_blks_hit+heap_blks_read,0)*100,2) AS kes_nisbeti
+             NULLIF(heap_blks_hit+heap_blks_read,0)*100,2) AS cache_ratio
 FROM pg_statio_user_tables ORDER BY heap_blks_read DESC;
 \`\`\`
 
-**Checkpoint statistikası:**
+**Статистика checkpoints:**
 \`\`\`sql
 SELECT checkpoints_timed, checkpoints_req,
-       checkpoint_write_time/1000 AS yaz_san,
+       checkpoint_write_time/1000 AS write_sec,
        buffers_checkpoint, buffers_clean, buffers_backend, maxwritten_clean
 FROM pg_stat_bgwriter;
--- buffers_backend yüksəkdir → shared_buffers az
--- maxwritten_clean > 0 → bgwriter çatışmır
+-- buffers_backend высокий → shared_buffers мало
+-- maxwritten_clean > 0 → bgwriter не справляется
 \`\`\`
 
-**Müvəqqəti fayllar:**
+**Временные файлы:**
 \`\`\`sql
-SELECT datname, temp_files, pg_size_pretty(temp_bytes) AS müvəqqəti_ölçü
+SELECT datname, temp_files, pg_size_pretty(temp_bytes) AS temp_size
 FROM pg_stat_database WHERE temp_files > 0 ORDER BY temp_bytes DESC;
--- Varsa → work_mem artır
+-- Если есть → увеличить work_mem
 \`\`\`
 
-**Rollback nisbəti:**
+**Коэффициент откатов:**
 \`\`\`sql
 SELECT datname,
-       round(xact_rollback::numeric / NULLIF(xact_commit+xact_rollback,0)*100, 2) AS geri_alma_faizi
+       round(xact_rollback::numeric / NULLIF(xact_commit+xact_rollback,0)*100, 2) AS rollback_pct
 FROM pg_stat_database WHERE datname NOT LIKE 'template%';
--- > 5% → tətbiqdə tez-tez xətalar var
+-- > 5% → частые ошибки в приложении
 \`\`\``
       },
       {
-        title: "Kilidlərin monitorinqi",
-        content: `**Uzun sorğular:**
+        title: "Мониторинг блокировок",
+        content: `**Долгие запросы:**
 \`\`\`sql
-SELECT pid, usename, now()-query_start AS muddet, state, query
+SELECT pid, usename, now()-query_start AS duration, state, query
 FROM pg_stat_activity
-WHERE state != 'idle' AND now()-query_start > interval '30 saniye'
-ORDER BY muddet DESC;
+WHERE state != 'idle' AND now()-query_start > interval '30 seconds'
+ORDER BY duration DESC;
 \`\`\`
 
-**Kimin kimi bloklaması:**
+**Кто кого блокирует:**
 \`\`\`sql
-SELECT blocked.pid AS blok_pid, blocked.query AS blok_sorgu,
-       blocking.pid AS bloke_eden, blocking.query AS bloke_eden_sorgu,
-       now()-blocked.query_start AS gozleme
+SELECT blocked.pid AS blocked_pid, blocked.query AS blocked_query,
+       blocking.pid AS blocking_pid, blocking.query AS blocking_query,
+       now()-blocked.query_start AS wait_time
 FROM pg_stat_activity blocked
 JOIN pg_stat_activity blocking
     ON blocking.pid = ANY(pg_blocking_pids(blocked.pid))
-ORDER BY gozleme DESC;
+ORDER BY wait_time DESC;
 \`\`\`
 
-**Kilid detalları:**
+**Детали блокировок:**
 \`\`\`sql
 SELECT l.pid, l.locktype, l.relation::regclass, l.mode, l.granted, a.query
 FROM pg_locks l JOIN pg_stat_activity a ON l.pid = a.pid
 WHERE NOT l.granted;
 \`\`\`
 
-**Vaxt limitlər:**
+**Лимиты времени:**
 \`\`\`sql
 SET lock_timeout = '10s';
 SET statement_timeout = '60s';
@@ -1695,7 +1695,7 @@ SET idle_in_transaction_session_timeout = '5min';
 \`\`\``
       },
       {
-        title: "Prometheus və Alartlar",
+        title: "Prometheus и алерты",
         content: `**postgres_exporter:**
 \`\`\`bash
 docker run -d -p 9187:9187 \
@@ -1703,163 +1703,163 @@ docker run -d -p 9187:9187 \
     prometheuscommunity/postgres-exporter
 \`\`\`
 
-**Əsas metriklər:**
-• pg_up — əlçatımlılıq (1/0)
-• pg_stat_activity_count — bağlantı sayı vəziyyətə görə
-• pg_stat_database_blks_hit/read — keş istifadəsi
-• pg_replication_lag — replikasiya gecikmesi (saniyə)
-• pg_stat_user_tables_n_dead_tup — ölü sətirlər
-• pg_database_size_bytes — DB ölçüsü
+**Основные метрики:**
+• pg_up — доступность (1/0)
+• pg_stat_activity_count — количество соединений по состоянию
+• pg_stat_database_blks_hit/read — использование кэша
+• pg_replication_lag — задержка репликации (секунды)
+• pg_stat_user_tables_n_dead_tup — мёртвые строки
+• pg_database_size_bytes — размер БД
 
-**Alart qaydaları:**
+**Правила алертов:**
 \`\`\`yaml
 - alert: PostgreSQLDown
   expr: pg_up == 0
   for: 1m
   labels: { severity: critical }
 
-- alert: CoxluBaglantilar
+- alert: TooManyConnections
   expr: sum(pg_stat_activity_count) > pg_settings_max_connections * 0.8
   for: 5m
 
-- alert: YuksekReplikasiyaGecikmesi
+- alert: HighReplicationLag
   expr: pg_replication_lag > 30
   for: 5m
 
-- alert: AşağıKesNisbeti
+- alert: LowCacheRatio
   expr: cache_hit_ratio < 0.99
   for: 10m
 
-- alert: UzunMuddetliSorgu
+- alert: LongRunningQuery
   expr: pg_stat_activity_max_tx_duration > 300
   for: 2m
 \`\`\``
       },
       {
-        title: "Problem diaqnostikası",
-        content: `**Performans problemlərinin siyahısı:**
+        title: "Диагностика проблем",
+        content: `**Чеклист диагностики производительности:**
 
 \`\`\`sql
--- 1. İndi nə baş verir?
+-- 1. Что происходит прямо сейчас?
 SELECT pid, state, wait_event_type, wait_event,
-       now()-query_start AS muddet, query
+       now()-query_start AS duration, query
 FROM pg_stat_activity WHERE state != 'idle'
-ORDER BY muddet DESC NULLS LAST;
+ORDER BY duration DESC NULLS LAST;
 
--- 2. Kilid gözləməsi varmı?
+-- 2. Есть ли ожидание блокировок?
 SELECT count(*) FROM pg_stat_activity WHERE wait_event_type = 'Lock';
 
--- 3. Keş nisbəti normaldırmı?
+-- 3. Cache ratio в норме?
 SELECT round(blks_hit::numeric/(blks_hit+blks_read)*100,2)
 FROM pg_stat_database WHERE datname = current_database();
 
--- 4. Müvəqqəti fayllar varmı?
+-- 4. Есть ли временные файлы?
 SELECT temp_files, pg_size_pretty(temp_bytes)
 FROM pg_stat_database WHERE datname = current_database();
 
--- 5. Çoxlu ölü sətir?
+-- 5. Много мёртвых строк?
 SELECT relname, n_dead_tup,
-       round(n_dead_tup::numeric/NULLIF(n_live_tup,0)*100,1) AS ölü_faiz
+       round(n_dead_tup::numeric/NULLIF(n_live_tup,0)*100,1) AS dead_pct
 FROM pg_stat_user_tables WHERE n_dead_tup > 10000
-ORDER BY ölü_faiz DESC;
+ORDER BY dead_pct DESC;
 
--- 6. Ən yavaş sorğular
-SELECT left(query,80), calls, round(mean_exec_time::numeric,1) AS ort_ms
+-- 6. Самые медленные запросы
+SELECT left(query,80), calls, round(mean_exec_time::numeric,1) AS avg_ms
 FROM pg_stat_statements ORDER BY total_exec_time DESC LIMIT 10;
 
--- 7. Replikasiya slotu WAL gecikməsi
+-- 7. Задержка WAL слотов репликации
 SELECT slot_name, pg_size_pretty(
     pg_wal_lsn_diff(pg_current_wal_lsn(), restart_lsn))
 FROM pg_replication_slots WHERE NOT active;
 
--- 8. Wraparound təhlükəsi
+-- 8. Угроза wraparound
 SELECT datname, age(datfrozenxid),
-       2147483647 - age(datfrozenxid) AS qalan_xid
+       2147483647 - age(datfrozenxid) AS xid_left
 FROM pg_database ORDER BY age(datfrozenxid) DESC LIMIT 5;
 \`\`\``
       }
     ]
   },
   {
-    id: "advanced", icon: "🔬", title: "Qabaqcıl Mövzular", color: "#B39DDB",
+    id: "advanced", icon: "🔬", title: "Продвинутые темы", color: "#B39DDB",
     topics: [
       {
         title: "PL/pgSQL",
-        content: `**Funksiya strukturu:**
+        content: `**Структура функции:**
 \`\`\`sql
-CREATE OR REPLACE FUNCTION funksiya_adi(p1 TİP, p2 TİP DEFAULT dəyər)
-RETURNS qaytaris_tipi
+CREATE OR REPLACE FUNCTION func_name(p1 TYPE, p2 TYPE DEFAULT value)
+RETURNS return_type
 LANGUAGE plpgsql
 VOLATILE | STABLE | IMMUTABLE
 SECURITY DEFINER | SECURITY INVOKER
 AS $$
 DECLARE
-    v_deyishen  TİP := baslangic_deyer;
-    v_qeyd      RECORD;
+    v_var   TYPE := initial_value;
+    v_rec   RECORD;
 BEGIN
-    -- gövdə
-    RETURN neticə;
+    -- тело
+    RETURN result;
 EXCEPTION
-    WHEN unique_violation THEN RAISE NOTICE 'Dublikat: %', SQLERRM;
-    WHEN OTHERS THEN RAISE EXCEPTION 'Xəta %: %', SQLSTATE, SQLERRM;
+    WHEN unique_violation THEN RAISE NOTICE 'Дубликат: %', SQLERRM;
+    WHEN OTHERS THEN RAISE EXCEPTION 'Ошибка %: %', SQLSTATE, SQLERRM;
 END;
 $$;
 \`\`\`
 
-**İdarəetmə konstruksiyaları:**
+**Управляющие конструкции:**
 \`\`\`sql
-IF maas > 100000 THEN dərəcə := 'Baş mütəxəssis';
-ELSIF maas > 60000 THEN dərəcə := 'Mütəxəssis';
-ELSE dərəcə := 'Kiçik mütəxəssis'; END IF;
+IF salary > 100000 THEN grade := 'Ведущий специалист';
+ELSIF salary > 60000 THEN grade := 'Специалист';
+ELSE grade := 'Младший специалист'; END IF;
 
-FOR qeyd IN SELECT * FROM t WHERE şərt LOOP
-    RAISE NOTICE 'Sətir: %', qeyd.sutun;
+FOR rec IN SELECT * FROM t WHERE condition LOOP
+    RAISE NOTICE 'Строка: %', rec.col;
 END LOOP;
 
 FOR i IN 1..10 LOOP ... END LOOP;
-WHILE sayğac < 100 LOOP ... END LOOP;
+WHILE counter < 100 LOOP ... END LOOP;
 
--- Dinamik SQL (təhlükəsiz!)
-EXECUTE 'SELECT * FROM ' || quote_ident(cedvel_adi)
-    INTO v_qeyd USING parametr;
-EXECUTE format('CREATE INDEX ON %I (%I)', cedvel, sutun);
+-- Динамический SQL (безопасно!)
+EXECUTE 'SELECT * FROM ' || quote_ident(table_name)
+    INTO v_rec USING param;
+EXECUTE format('CREATE INDEX ON %I (%I)', tbl, col);
 \`\`\`
 
-**Çoxlu sətir qaytarma:**
+**Возврат нескольких строк:**
 \`\`\`sql
-CREATE FUNCTION statistika_al()
-RETURNS TABLE (dept_id INT, ort_maas NUMERIC)
+CREATE FUNCTION get_stats()
+RETURNS TABLE (dept_id INT, avg_salary NUMERIC)
 LANGUAGE plpgsql AS $$
 BEGIN
     RETURN QUERY
-        SELECT e.dept_id, AVG(e.maas) FROM islechiler e GROUP BY 1;
+        SELECT e.dept_id, AVG(e.salary) FROM employees e GROUP BY 1;
 END; $$;
 \`\`\`
 
-**Prosedurlar (PG 11+):**
+**Процедуры (PG 11+):**
 \`\`\`sql
-CREATE OR REPLACE PROCEDURE pul_kocur(
-    kimden INT, kime INT, mebleg NUMERIC)
+CREATE OR REPLACE PROCEDURE transfer_money(
+    from_id INT, to_id INT, amount NUMERIC)
 LANGUAGE plpgsql AS $$
 BEGIN
-    UPDATE hesablar SET balans = balans - mebleg WHERE id = kimden;
-    UPDATE hesablar SET balans = balans + mebleg WHERE id = kime;
+    UPDATE accounts SET balance = balance - amount WHERE id = from_id;
+    UPDATE accounts SET balance = balance + amount WHERE id = to_id;
     COMMIT;
 END; $$;
-CALL pul_kocur(1, 2, 1000);
+CALL transfer_money(1, 2, 1000);
 \`\`\``
       },
       {
-        title: "Tetikleyiciler (Triggers)",
-        content: `**Növlər:** BEFORE/AFTER/INSTEAD OF × INSERT/UPDATE/DELETE/TRUNCATE × ROW/STATEMENT
+        title: "Триггеры",
+        content: `**Виды:** BEFORE/AFTER/INSTEAD OF × INSERT/UPDATE/DELETE/TRUNCATE × ROW/STATEMENT
 
-**Audit tetikleyicisi:**
+**Триггер аудита:**
 \`\`\`sql
-CREATE OR REPLACE FUNCTION audit_deyishiklikleri()
+CREATE OR REPLACE FUNCTION audit_changes()
 RETURNS TRIGGER LANGUAGE plpgsql AS $$
 BEGIN
-    INSERT INTO audit_jurnal (
-        cedvel_adi, emeliyyat, kohn_data, yeni_data, deyishdiren, zaman)
+    INSERT INTO audit_log (
+        table_name, operation, old_data, new_data, changed_by, changed_at)
     VALUES (
         TG_TABLE_NAME, TG_OP,
         CASE WHEN TG_OP != 'INSERT' THEN row_to_json(OLD) END,
@@ -1870,381 +1870,381 @@ BEGIN
 END; $$;
 
 CREATE TRIGGER trg_audit
-    AFTER INSERT OR UPDATE OR DELETE ON islechiler
-    FOR EACH ROW EXECUTE FUNCTION audit_deyishiklikleri();
+    AFTER INSERT OR UPDATE OR DELETE ON employees
+    FOR EACH ROW EXECUTE FUNCTION audit_changes();
 \`\`\`
 
-**Avtomatik updated_at:**
+**Автоматический updated_at:**
 \`\`\`sql
-CREATE OR REPLACE FUNCTION updated_at_qur()
+CREATE OR REPLACE FUNCTION set_updated_at()
 RETURNS TRIGGER AS $$
-BEGIN NEW.yenilendi := NOW(); RETURN NEW; END;
+BEGIN NEW.updated_at := NOW(); RETURN NEW; END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trg_zaman BEFORE UPDATE ON islechiler
-FOR EACH ROW EXECUTE FUNCTION updated_at_qur();
+CREATE TRIGGER trg_timestamp BEFORE UPDATE ON employees
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 \`\`\`
 
-**Tetikleyici idarəetməsi:**
+**Управление триггерами:**
 \`\`\`sql
-ALTER TABLE islechiler DISABLE TRIGGER trg_audit;
-ALTER TABLE islechiler ENABLE TRIGGER trg_audit;
-ALTER TABLE islechiler DISABLE TRIGGER ALL;
-DROP TRIGGER IF EXISTS trg_audit ON islechiler;
+ALTER TABLE employees DISABLE TRIGGER trg_audit;
+ALTER TABLE employees ENABLE TRIGGER trg_audit;
+ALTER TABLE employees DISABLE TRIGGER ALL;
+DROP TRIGGER IF EXISTS trg_audit ON employees;
 \`\`\``
       },
       {
-        title: "Genişləndirmələr (Extensions)",
+        title: "Расширения (Extensions)",
         content: `\`\`\`sql
 CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
 SELECT * FROM pg_extension;
 SELECT * FROM pg_available_extensions ORDER BY name;
 \`\`\`
 
-**Vacib genişləndirmələr:**
+**Важные расширения:**
 
-**pg_trgm** — alt sətir axtarışı (LIKE '%..%' indekslə):
+**pg_trgm** — поиск подстрок (LIKE '%..%' с индексом):
 \`\`\`sql
 CREATE EXTENSION pg_trgm;
-CREATE INDEX ON məhsullar USING GIN (ad gin_trgm_ops);
-SELECT * FROM məhsullar WHERE ad ILIKE '%telefon%';
+CREATE INDEX ON products USING GIN (name gin_trgm_ops);
+SELECT * FROM products WHERE name ILIKE '%телефон%';
 SELECT similarity('PostgreSQL', 'PostreSQL');  -- 0.7
 \`\`\`
 
-**pg_cron** — tapşırıq planlaşdırıcı:
+**pg_cron** — планировщик задач:
 \`\`\`sql
 -- shared_preload_libraries = 'pg_cron'
 CREATE EXTENSION pg_cron;
-SELECT cron.schedule('gece-vacuum', '0 3 * * *', 'VACUUM ANALYZE sifarisler');
-SELECT cron.schedule('mv-yenile', '*/15 * * * *',
-    'REFRESH MATERIALIZED VIEW CONCURRENTLY aylik_statistika');
+SELECT cron.schedule('night-vacuum', '0 3 * * *', 'VACUUM ANALYZE orders');
+SELECT cron.schedule('refresh-mv', '*/15 * * * *',
+    'REFRESH MATERIALIZED VIEW CONCURRENTLY monthly_stats');
 \`\`\`
 
-**pgvector** — vektor axtarışı (AI/ML):
+**pgvector** — векторный поиск (AI/ML):
 \`\`\`sql
 CREATE EXTENSION vector;
-CREATE TABLE embeddingler (id BIGSERIAL PRIMARY KEY, vektor vector(1536));
-CREATE INDEX ON embeddingler USING ivfflat (vektor vector_cosine_ops);
-SELECT * FROM embeddingler ORDER BY vektor <=> sorgu_vektoru LIMIT 5;
+CREATE TABLE embeddings (id BIGSERIAL PRIMARY KEY, vec vector(1536));
+CREATE INDEX ON embeddings USING ivfflat (vec vector_cosine_ops);
+SELECT * FROM embeddings ORDER BY vec <=> query_vector LIMIT 5;
 \`\`\`
 
-| Genişləndirmə | Təyinat |
-| pg_stat_statements | Sorğu statistikası |
-| pgcrypto | Şifrələmə |
-| uuid-ossp | UUID generasiyası |
-| pg_trgm | LIKE '%text%' indekslə |
-| citext | Böyük/kiçik həssas olmayan TEXT |
-| postgres_fdw | Xarici məlumat mənbəyi |
-| TimescaleDB | Zaman seriyası |
-| PostGIS | Coğrafi məlumat |
-| pgvector | Vektor axtarışı |`
+| Расширение | Назначение |
+| pg_stat_statements | Статистика запросов |
+| pgcrypto | Шифрование |
+| uuid-ossp | Генерация UUID |
+| pg_trgm | LIKE '%text%' с индексом |
+| citext | TEXT без учёта регистра |
+| postgres_fdw | Внешние источники данных |
+| TimescaleDB | Временные ряды |
+| PostGIS | Геопространственные данные |
+| pgvector | Векторный поиск |`
       },
       {
-        title: "Tam Mətn Axtarışı",
-        content: `**tsvector-u cədvəldə saxla:**
+        title: "Полнотекстовый поиск",
+        content: `**Хранение tsvector в таблице:**
 \`\`\`sql
-ALTER TABLE meqaleler ADD COLUMN axtaris_vektoru TSVECTOR;
+ALTER TABLE articles ADD COLUMN search_vector TSVECTOR;
 
--- Avtomatik yeniləmə tetikleyicisi
-CREATE TRIGGER tsvector_yenile BEFORE INSERT OR UPDATE ON meqaleler
+-- Автоматическое обновление через триггер
+CREATE TRIGGER tsvector_update BEFORE INSERT OR UPDATE ON articles
     FOR EACH ROW EXECUTE FUNCTION
-    tsvector_update_trigger(axtaris_vektoru, 'pg_catalog.russian', bashliq, metn);
+    tsvector_update_trigger(search_vector, 'pg_catalog.russian', title, body);
 \`\`\`
 
-**Çəkilərlə əl ilə:**
+**Вручную с весами:**
 \`\`\`sql
-UPDATE meqaleler SET axtaris_vektoru =
-    setweight(to_tsvector('russian', coalesce(bashliq,'')), 'A') ||
-    setweight(to_tsvector('russian', coalesce(metn,'')), 'B');
+UPDATE articles SET search_vector =
+    setweight(to_tsvector('russian', coalesce(title,'')), 'A') ||
+    setweight(to_tsvector('russian', coalesce(body,'')), 'B');
 
-CREATE INDEX ON meqaleler USING GIN (axtaris_vektoru);
+CREATE INDEX ON articles USING GIN (search_vector);
 \`\`\`
 
-**Axtarış və sıralama:**
+**Поиск и ранжирование:**
 \`\`\`sql
-SELECT id, bashliq,
-       ts_rank(axtaris_vektoru, sorgu) AS rank,
-       ts_headline('russian', metn, sorgu, 'MaxWords=15,MinWords=5') AS parça
-FROM meqaleler, to_tsquery('russian', 'postgresql & replikasiya') sorgu
-WHERE axtaris_vektoru @@ sorgu ORDER BY rank DESC LIMIT 10;
+SELECT id, title,
+       ts_rank(search_vector, query) AS rank,
+       ts_headline('russian', body, query, 'MaxWords=15,MinWords=5') AS excerpt
+FROM articles, to_tsquery('russian', 'postgresql & репликация') query
+WHERE search_vector @@ query ORDER BY rank DESC LIMIT 10;
 \`\`\`
 
-**Sorğu növləri:**
+**Типы запросов:**
 \`\`\`sql
-to_tsquery('russian', 'baza & melumatlari')   -- VƏ
-to_tsquery('russian', 'baza | melumatlari')   -- YA DA
-plainto_tsquery('russian', 'baza melumatlari') -- sözlər & ilə
-websearch_to_tsquery('russian', 'baza -oracle') -- Google stili
+to_tsquery('russian', 'база & данных')   -- И
+to_tsquery('russian', 'база | данных')   -- ИЛИ
+plainto_tsquery('russian', 'база данных') -- слова через &
+websearch_to_tsquery('russian', 'база -oracle') -- Google-стиль
 \`\`\``
       },
       {
         title: "LISTEN / NOTIFY",
-        content: `**Asinxron bildirişlər:**
+        content: `**Асинхронные уведомления:**
 \`\`\`sql
-LISTEN sifarisler_kanali;
-UNLISTEN sifarisler_kanali;
+LISTEN orders_channel;
+UNLISTEN orders_channel;
 UNLISTEN *;
 
-NOTIFY sifarisler_kanali;
-NOTIFY sifarisler_kanali, '{"id": 42, "mebleg": 999}';
+NOTIFY orders_channel;
+NOTIFY orders_channel, '{"id": 42, "amount": 999}';
 \`\`\`
 
-**Tetikleyicidən bildiriş:**
+**Уведомление из триггера:**
 \`\`\`sql
-CREATE OR REPLACE FUNCTION yeni_sifaris_bildir()
+CREATE OR REPLACE FUNCTION notify_new_order()
 RETURNS TRIGGER LANGUAGE plpgsql AS $$
 BEGIN
-    PERFORM pg_notify('yeni_sifarisler', row_to_json(NEW)::TEXT);
+    PERFORM pg_notify('new_orders', row_to_json(NEW)::TEXT);
     RETURN NEW;
 END; $$;
 
-CREATE TRIGGER trg_bildir AFTER INSERT ON sifarisler
-FOR EACH ROW EXECUTE FUNCTION yeni_sifaris_bildir();
+CREATE TRIGGER trg_notify AFTER INSERT ON orders
+FOR EACH ROW EXECUTE FUNCTION notify_new_order();
 \`\`\`
 
-**İstifadə halları:**
-• Tətbiq keşinin etibarsızlaşdırılması
-• Tapşırıq növbələri
-• Real-time bildirişlər xidmətlər arasında
+**Сценарии использования:**
+• Инвалидация кэша приложения
+• Очереди задач
+• Real-time уведомления между сервисами
 
-**VACİB:** LISTEN daimi bağlantı tələb edir → PgBouncer transaction mode ilə uyğunsuz!
+**ВАЖНО:** LISTEN требует постоянного соединения → несовместимо с PgBouncer в transaction mode!
 
-**Tapşırıq növbəsi şablonu:**
+**Шаблон очереди задач:**
 \`\`\`sql
-LISTEN iş_novbesi;
--- NOTIFY alandıqda:
-SELECT id, yuk FROM isler WHERE status = 'gozleyir'
-ORDER BY yaradildi LIMIT 1 FOR UPDATE SKIP LOCKED;
-UPDATE isler SET status = 'icra_edilir' WHERE id = :id;
+LISTEN job_queue;
+-- При получении NOTIFY:
+SELECT id, payload FROM jobs WHERE status = 'pending'
+ORDER BY created_at LIMIT 1 FOR UPDATE SKIP LOCKED;
+UPDATE jobs SET status = 'running' WHERE id = :id;
 \`\`\``
       },
       {
-        title: "Xarici Məlumat Sarıyıcıları (FDW)",
+        title: "Foreign Data Wrappers (FDW)",
         content: `**postgres_fdw — PostgreSQL ↔ PostgreSQL:**
 \`\`\`sql
 CREATE EXTENSION postgres_fdw;
 
-CREATE SERVER uzaq_analitika
+CREATE SERVER remote_analytics
     FOREIGN DATA WRAPPER postgres_fdw
-    OPTIONS (host '10.0.0.100', port '5432', dbname 'analitika',
+    OPTIONS (host '10.0.0.100', port '5432', dbname 'analytics',
              fetch_size '10000', use_remote_estimate 'true');
 
-CREATE USER MAPPING FOR app_user SERVER uzaq_analitika
-    OPTIONS (user 'oxucu', password 'sirr');
+CREATE USER MAPPING FOR app_user SERVER remote_analytics
+    OPTIONS (user 'reader', password 'secret');
 
 IMPORT FOREIGN SCHEMA public
-    FROM SERVER uzaq_analitika INTO uzaq_sxem;
+    FROM SERVER remote_analytics INTO remote_schema;
 
--- Adi cədvəl kimi istifadə (JOIN da işləyir!)
-SELECT y.ad, u.mebleg FROM yerli_musteriler y
-JOIN uzaq_sifarisler u ON y.id = u.musteri_id;
+-- Использовать как обычную таблицу (JOIN тоже работает!)
+SELECT c.name, o.amount FROM local_customers c
+JOIN remote_orders o ON c.id = o.customer_id;
 \`\`\`
 
-**file_fdw — CSV fayllar:**
+**file_fdw — CSV файлы:**
 \`\`\`sql
 CREATE EXTENSION file_fdw;
-CREATE SERVER csv_fayllar FOREIGN DATA WRAPPER file_fdw;
+CREATE SERVER csv_files FOREIGN DATA WRAPPER file_fdw;
 
-CREATE FOREIGN TABLE giriş_jurnali (ip TEXT, zaman TIMESTAMPTZ, yol TEXT)
-    SERVER csv_fayllar
+CREATE FOREIGN TABLE access_log (ip TEXT, ts TIMESTAMPTZ, path TEXT)
+    SERVER csv_files
     OPTIONS (filename '/var/log/access.csv', format 'csv', header 'true');
 \`\`\`
 
-| Tip | FDW |
+| Тип | FDW |
 | PostgreSQL | postgres_fdw |
 | MySQL/MariaDB | mysql_fdw |
 | Oracle | oracle_fdw |
 | SQL Server | tds_fdw |
-| CSV faylı | file_fdw |
-| İstənilən mənbə | multicorn (Python) |`
+| CSV файл | file_fdw |
+| Любой источник | multicorn (Python) |`
       }
     ]
   },
   {
-    id: "dba_tasks", icon: "🧰", title: "DBA Vəzifələri", color: "#FFD54F",
+    id: "dba_tasks", icon: "🧰", title: "Задачи DBA", color: "#FFD54F",
     topics: [
       {
-        title: "Günlük yoxlama siyahısı",
+        title: "Ежедневный чеклист",
         content: `\`\`\`sql
--- 1. Əlçatımlılıq
+-- 1. Доступность
 SELECT now(), version(), pg_is_in_recovery();
 
--- 2. Bağlantılar
+-- 2. Соединения
 SELECT state, count(*) FROM pg_stat_activity GROUP BY state;
 
--- 3. Uzun sorğular (> 5 dəqiqə)
-SELECT pid, usename, now()-query_start AS muddet, left(query,80)
+-- 3. Долгие запросы (> 5 минут)
+SELECT pid, usename, now()-query_start AS duration, left(query,80)
 FROM pg_stat_activity WHERE state != 'idle'
-  AND now()-query_start > interval '5 dəqiqə'
-ORDER BY muddet DESC;
+  AND now()-query_start > interval '5 minutes'
+ORDER BY duration DESC;
 
--- 4. Kilid gözləməsi
+-- 4. Ожидание блокировок
 SELECT count(*) FROM pg_stat_activity WHERE wait_event_type = 'Lock';
 
--- 5. Replikasiya
+-- 5. Репликация
 SELECT client_addr, state, replay_lag, sync_state FROM pg_stat_replication;
-SELECT now() - pg_last_xact_replay_timestamp() AS gec_qalma;  -- standby-da
+SELECT now() - pg_last_xact_replay_timestamp() AS lag;  -- на standby
 
--- 6. Baza ölçüləri
+-- 6. Размеры баз
 SELECT datname, pg_size_pretty(pg_database_size(datname))
 FROM pg_database WHERE datname NOT LIKE 'template%';
 
--- 7. Ölü sətirler
+-- 7. Мёртвые строки
 SELECT relname, n_dead_tup, last_autovacuum
 FROM pg_stat_user_tables WHERE n_dead_tup > 50000
 ORDER BY n_dead_tup DESC LIMIT 10;
 
--- 8. Aktiv olmayan replikasiya slotları (disk dolacaq!)
+-- 8. Неактивные слоты репликации (диск заполнится!)
 SELECT slot_name,
-       pg_size_pretty(pg_wal_lsn_diff(pg_current_wal_lsn(), restart_lsn)) AS wal_gecikme
+       pg_size_pretty(pg_wal_lsn_diff(pg_current_wal_lsn(), restart_lsn)) AS wal_lag
 FROM pg_replication_slots WHERE NOT active;
 
--- 9. Wraparound təhlükəsi
+-- 9. Угроза wraparound
 SELECT datname, age(datfrozenxid),
-       2147483647 - age(datfrozenxid) AS qalan_xid
+       2147483647 - age(datfrozenxid) AS xid_left
 FROM pg_database ORDER BY age(datfrozenxid) DESC;
 \`\`\``
       },
       {
         title: "pg_upgrade",
-        content: `**Major versiya yeniləməsi:**
+        content: `**Обновление major-версии:**
 
-**Üsul 1: pg_upgrade (dayanma müddəti ilə):**
+**Способ 1: pg_upgrade (с простоем):**
 \`\`\`bash
-pg_ctl stop -D /kohn/data
-/usr/lib/postgresql/16/bin/initdb -D /yeni/data
+pg_ctl stop -D /old/data
+/usr/lib/postgresql/16/bin/initdb -D /new/data
 
-# Uyğunluq yoxlaması (real miqrasiya olmadan)
-pg_upgrade --old-datadir /kohn/data --new-datadir /yeni/data \
+# Проверка совместимости (без реальной миграции)
+pg_upgrade --old-datadir /old/data --new-datadir /new/data \
     --old-bindir /usr/lib/postgresql/14/bin \
     --new-bindir /usr/lib/postgresql/16/bin --check
 
-# Yeniləmə
-pg_upgrade --old-datadir /kohn/data --new-datadir /yeni/data \
+# Обновление
+pg_upgrade --old-datadir /old/data --new-datadir /new/data \
     --old-bindir /usr/lib/postgresql/14/bin \
     --new-bindir /usr/lib/postgresql/16/bin \
-    --jobs 4 --link   # hard link (sürətli, geri qayıtmaq olmaz!)
+    --jobs 4 --link   # hard link (быстро, но откат невозможен!)
 
 ./analyze_new_cluster.sh
 ./delete_old_cluster.sh
 \`\`\`
 
-**Üsul 2: Məntiqi Replikasiya (dayanmasız):**
+**Способ 2: Логическая репликация (без простоя):**
 \`\`\`
-1. Yeni PG 16 klaster qur
-2. Köhnə → yeni məntiqi replikasiya qur
-3. Sinxronizasiyayı gözlə
-4. Tətbiqi yeni klasterə keç (minimal dayanma)
-5. Köhnə klateri dayandır
+1. Поднять новый PG 16 кластер
+2. Настроить логическую репликацию старый → новый
+3. Дождаться синхронизации
+4. Переключить приложение на новый кластер (минимальный простой)
+5. Остановить старый кластер
 \`\`\`
 
-**Yeniləmədən sonra yoxlama:**
+**Проверка после обновления:**
 \`\`\`sql
 SELECT version();
 SELECT * FROM pg_extension;
 ALTER EXTENSION postgis UPDATE;
-VACUUM ANALYZE;  -- planlaşdırıcı üçün statistika yenilə
+VACUUM ANALYZE;  -- обновить статистику для планировщика
 \`\`\``
       },
       {
-        title: "Böyük cədvəllərlə iş",
-        content: `**Toplu DELETE (kilid qarşısını almaq):**
+        title: "Работа с большими таблицами",
+        content: `**Пакетный DELETE (избегать блокировок):**
 \`\`\`sql
 DO $$
-DECLARE silinen_satirlar INT := 1;
+DECLARE deleted_rows INT := 1;
 BEGIN
-    WHILE silinen_satirlar > 0 LOOP
-        DELETE FROM jurnallar WHERE id IN (
-            SELECT id FROM jurnallar
-            WHERE yaradildi < '2024-01-01' LIMIT 10000
+    WHILE deleted_rows > 0 LOOP
+        DELETE FROM logs WHERE id IN (
+            SELECT id FROM logs
+            WHERE created_at < '2024-01-01' LIMIT 10000
         );
-        GET DIAGNOSTICS silinen_satirlar = ROW_COUNT;
+        GET DIAGNOSTICS deleted_rows = ROW_COUNT;
         PERFORM pg_sleep(0.1);
-        RAISE NOTICE 'Silindi: %', silinen_satirlar;
+        RAISE NOTICE 'Удалено: %', deleted_rows;
     END LOOP;
 END $$;
 \`\`\`
 
-**CLUSTER — fiziki yenidən sıralama:**
+**CLUSTER — физическая пересортировка:**
 \`\`\`sql
-CLUSTER islechiler USING idx_dept_yaradildi;  -- KİLİDLƏYİR!
--- pg_repack kilidsiz alternativ:
--- pg_repack -U postgres -d mydb -t islechiler
+CLUSTER employees USING idx_dept_created;  -- БЛОКИРУЕТ!
+-- pg_repack — альтернатива без блокировки:
+-- pg_repack -U postgres -d mydb -t employees
 \`\`\`
 
-**Köhnə partisiyaların avtomatik silinməsi:**
+**Автоматическое удаление старых партиций:**
 \`\`\`sql
-CREATE OR REPLACE FUNCTION kohne_partisiyalari_sil()
+CREATE OR REPLACE FUNCTION drop_old_partitions()
 RETURNS void LANGUAGE plpgsql AS $$
-DECLARE partisiya_adi TEXT;
+DECLARE part_name TEXT;
 BEGIN
-    FOR partisiya_adi IN
+    FOR part_name IN
         SELECT inhrelid::regclass::TEXT FROM pg_inherits
-        WHERE inhparent = 'jurnallar'::regclass
+        WHERE inhparent = 'logs'::regclass
     LOOP
-        IF partisiya_adi < 'jurnallar_' ||
-           to_char(NOW()-interval '90 gün', 'YYYY_MM') THEN
-            EXECUTE 'DROP TABLE IF EXISTS ' || partisiya_adi;
-            RAISE NOTICE 'Silindi: %', partisiya_adi;
+        IF part_name < 'logs_' ||
+           to_char(NOW()-interval '90 days', 'YYYY_MM') THEN
+            EXECUTE 'DROP TABLE IF EXISTS ' || part_name;
+            RAISE NOTICE 'Удалено: %', part_name;
         END IF;
     END LOOP;
 END; $$;
 
-SELECT cron.schedule('kohne-sil', '0 2 1 * *',
-    'SELECT kohne_partisiyalari_sil()');
+SELECT cron.schedule('drop-old', '0 2 1 * *',
+    'SELECT drop_old_partitions()');
 \`\`\``
       },
       {
-        title: "Tipik DBA səhvləri",
-        content: `**Kritik konfiqurasiya səhvləri:**
-• fsync = off — HEÇVAXT! → məlumat itkisi
-• Həddindən böyük work_mem: 200 bağlantı × 4 sort × 256MB = 200GB!
-• idle in transaction-a diqqətsizlik → snapshot saxlayır, VACUUM-a mane olur
-• Aktiv olmayan replikasiya slotlarını nəzərə almamaq → disk dolacaq!
+        title: "Типичные ошибки DBA",
+        content: `**Критические ошибки конфигурации:**
+• fsync = off — НИКОГДА! → потеря данных
+• Слишком большой work_mem: 200 соединений × 4 сортировки × 256 МБ = 200 ГБ!
+• Игнорирование idle in transaction → держит снапшот, мешает VACUUM
+• Неактивные слоты репликации → диск заполнится!
 
-**İndeksləmə səhvləri:**
-• Boolean/enum sütununda standart indeks → qismli indeks istifadə edin!
-• Yanlış sırada mürəkkəb indeks (ESR qaydası unudulub)
-• WHERE UPPER(email) = 'X' funksional indekssiz
-• Produksiyada CONCURRENTLY-siz CREATE INDEX → bütün cədvəl kilidlənir
+**Ошибки индексирования:**
+• Обычный индекс на boolean/enum-столбец → используйте частичный индекс!
+• Неправильный порядок в составном индексе (забыто правило ESR)
+• WHERE UPPER(email) = 'X' без функционального индекса
+• CREATE INDEX без CONCURRENTLY на проде → вся таблица заблокируется
 
-**Texniki xidmət səhvləri:**
-• Autovacuum-a etinasızlıq → şişkinlik, wraparound
-• İş saatlarında VACUUM FULL → tam kilidləmə
-• WAL gecikməsini izləməmək
-• Ehtiyat nüsxəsindən bərpanı sınamamaq
+**Ошибки обслуживания:**
+• Игнорирование autovacuum → раздувание, wraparound
+• VACUUM FULL в рабочее время → полная блокировка
+• Не мониторить задержку WAL
+• Не тестировать восстановление из бэкапа
 
-**Miqrasiya səhvləri:**
-• lock_timeout olmadan ALTER TABLE → tətbiqi asar
-• NOT NULL əlavəsi DEFAULT-suz (< PG 11 cədvəli yenidən yaradır)
-• CONCURRENTLY-siz indeks silinməsi
-• Riskli miqrasiyadan əvvəl geri qaytarma planı yoxdur
+**Ошибки миграций:**
+• ALTER TABLE без lock_timeout → повесит приложение
+• Добавление NOT NULL без DEFAULT (< PG 11 пересоздаёт таблицу)
+• Удаление индекса без CONCURRENTLY
+• Нет плана отката перед рискованной миграцией
 
-**Təhlükəsizlik səhvləri:**
+**Ошибки безопасности:**
 \`\`\`sql
--- ETMƏ:
--- pg_hba.conf-da 0.0.0.0/0 üçün trust
--- Bütün istifadəçilərə SUPERUSER ver
--- md5 istifadə et, scram-sha-256 deyil
+-- НЕ ДЕЛАТЬ:
+-- trust для 0.0.0.0/0 в pg_hba.conf
+-- Давать SUPERUSER всем пользователям
+-- Использовать md5 вместо scram-sha-256
 
--- ET:
+-- ДЕЛАТЬ:
 REVOKE ALL ON SCHEMA public FROM PUBLIC;
 REVOKE CONNECT ON DATABASE mydb FROM PUBLIC;
 ALTER ROLE app_user CONNECTION LIMIT 20;
 \`\`\``
       },
       {
-        title: "Faydalı DBA sorğuları",
-        content: `**Dublikat indekslər:**
+        title: "Полезные запросы DBA",
+        content: `**Дублирующиеся индексы:**
 \`\`\`sql
-SELECT indrelid::regclass AS cedvel,
-       array_agg(indexrelid::regclass) AS indekslər,
-       array_agg(indkey) AS sutunlar
+SELECT indrelid::regclass AS table,
+       array_agg(indexrelid::regclass) AS indexes,
+       array_agg(indkey) AS columns
 FROM pg_index GROUP BY indrelid, indkey
 HAVING count(*) > 1;
 \`\`\`
 
-**Birincil açar olmayan cədvəllər:**
+**Таблицы без первичного ключа:**
 \`\`\`sql
 SELECT tablename FROM pg_tables pt
 WHERE schemaname = 'public'
@@ -2255,16 +2255,16 @@ WHERE schemaname = 'public'
   );
 \`\`\`
 
-**Böyük cədvəllərə Seq Scan:**
+**Seq Scan по большим таблицам:**
 \`\`\`sql
 SELECT schemaname, tablename, seq_scan,
-       round(seq_tup_read::numeric / NULLIF(seq_scan,0)) AS scan_başına_ortalama
+       round(seq_tup_read::numeric / NULLIF(seq_scan,0)) AS avg_per_scan
 FROM pg_stat_user_tables
 WHERE seq_scan > 0 AND n_live_tup > 100000
 ORDER BY seq_tup_read DESC LIMIT 10;
 \`\`\`
 
-**Aktiv bağlantılar tətbiq üzrə:**
+**Активные соединения по приложению:**
 \`\`\`sql
 SELECT application_name, state, count(*)
 FROM pg_stat_activity
@@ -2272,18 +2272,18 @@ GROUP BY application_name, state
 ORDER BY count(*) DESC;
 \`\`\`
 
-**Donmuş hazırlanmış tranzaksiyalar:**
+**Зависшие подготовленные транзакции:**
 \`\`\`sql
 SELECT gid, prepared, owner, database FROM pg_prepared_xacts;
--- Köhnə varsa:
-ROLLBACK PREPARED 'tranzaksiya_id';
+-- Если есть старые:
+ROLLBACK PREPARED 'transaction_id';
 \`\`\`
 
-**Cədvəl şişkinliyi:**
+**Раздувание таблиц:**
 \`\`\`sql
 SELECT relname,
-       pg_size_pretty(pg_total_relation_size(oid)) AS cemi,
-       pg_size_pretty(pg_relation_size(oid)) AS cedvel,
+       pg_size_pretty(pg_total_relation_size(oid)) AS total,
+       pg_size_pretty(pg_relation_size(oid)) AS table,
        pg_size_pretty(pg_total_relation_size(oid) - pg_relation_size(oid)) AS extra
 FROM pg_class WHERE relkind = 'r'
 ORDER BY pg_total_relation_size(oid) DESC LIMIT 10;
@@ -2366,12 +2366,12 @@ export default function PGDBAGuide() {
             <span style={{fontSize:"26px"}}>🐘</span>
             <div>
               <div style={{fontSize:"15px",fontWeight:700,color:"#f0f6fc"}}>PostgreSQL DBA</div>
-              <div style={{fontSize:"11px",color:"#4FC3F7",fontWeight:600}}>{totalTopics} mövzu · Tam konspekt</div>
+              <div style={{fontSize:"11px",color:"#4FC3F7",fontWeight:600}}>{totalTopics} тем · Полный конспект</div>
             </div>
           </div>
         </div>
         <div style={{padding:"10px 12px 6px"}}>
-          <input type="text" placeholder="🔍 Axtar..." value={searchQuery}
+          <input type="text" placeholder="🔍 Поиск..." value={searchQuery}
             onChange={e=>handleSearch(e.target.value)}
             style={{width:"100%",padding:"8px 10px",background:"#161b22",border:"1px solid #30363d",borderRadius:"6px",color:"#f0f6fc",fontSize:"12px",outline:"none",boxSizing:"border-box"}} />
         </div>
@@ -2396,12 +2396,12 @@ export default function PGDBAGuide() {
               <span style={{fontSize:"16px"}}>{sec.icon}</span>
               <div>
                 <div style={{fontSize:"13px",fontWeight:activeSection===sec.id?600:400,color:activeSection===sec.id?sec.color:"#8b949e"}}>{sec.title}</div>
-                <div style={{fontSize:"10px",color:"#484f58"}}>{sec.topics.length} mövzu</div>
+                <div style={{fontSize:"10px",color:"#484f58"}}>{sec.topics.length} тем</div>
               </div>
             </div>
           ))}
         </div>
-        <div style={{padding:"10px 16px",borderTop:"1px solid #21262d",fontSize:"11px",color:"#484f58",textAlign:"center"}}>DBA Edition 2025 🇦🇿</div>
+        <div style={{padding:"10px 16px",borderTop:"1px solid #21262d",fontSize:"11px",color:"#484f58",textAlign:"center"}}>DBA Edition 2025 🇷🇺</div>
       </div>
 
       {/* Main */}
@@ -2412,7 +2412,7 @@ export default function PGDBAGuide() {
               <span style={{fontSize:"22px"}}>{currentSection.icon}</span>
               <div style={{flex:1}}>
                 <h1 style={{margin:0,fontSize:"17px",fontWeight:700,color:currentSection.color}}>{currentSection.title}</h1>
-                <p style={{margin:0,fontSize:"11px",color:"#484f58"}}>{currentSection.topics.length} mövzu</p>
+                <p style={{margin:0,fontSize:"11px",color:"#484f58"}}>{currentSection.topics.length} тем</p>
               </div>
             </div>
             <div style={{display:"flex",gap:"4px",padding:"10px 20px",background:"#0d1117",borderBottom:"1px solid #21262d",overflowX:"auto",flexShrink:0}}>
@@ -2438,7 +2438,7 @@ export default function PGDBAGuide() {
                   if(activeTopic>0) setActiveTopic(activeTopic-1);
                   else{const idx=sections.findIndex(s=>s.id===activeSection);if(idx>0){setActiveSection(sections[idx-1].id);setActiveTopic(sections[idx-1].topics.length-1);}}
                 }} style={{padding:"8px 16px",background:"#161b22",border:"1px solid #30363d",borderRadius:"6px",color:"#8b949e",cursor:"pointer",fontSize:"13px"}}>
-                  ← Geri
+                  ← Назад
                 </button>
                 <span style={{fontSize:"12px",color:"#484f58",alignSelf:"center"}}>
                   {activeTopic+1} / {currentSection.topics.length}
@@ -2447,7 +2447,7 @@ export default function PGDBAGuide() {
                   if(activeTopic<currentSection.topics.length-1) setActiveTopic(activeTopic+1);
                   else{const idx=sections.findIndex(s=>s.id===activeSection);if(idx<sections.length-1){setActiveSection(sections[idx+1].id);setActiveTopic(0);}}
                 }} style={{padding:"8px 16px",background:currentSection.color,border:"none",borderRadius:"6px",color:"#000",cursor:"pointer",fontSize:"13px",fontWeight:600}}>
-                  İrəli →
+                  Далее →
                 </button>
               </div>
             </div>
